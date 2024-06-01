@@ -1,0 +1,19 @@
+FROM php:8.2-apache
+
+# Composerのインストール
+RUN cd /usr/bin && curl -s http://getcomposer.org/installer | php && ln -s /usr/bin/composer.phar /usr/bin/composer
+RUN composer config --global process-timeout 3600
+# php.iniをコンテナ内に配置
+COPY php.ini /usr/local/etc/php/
+
+RUN apt-get update \
+    && apt-get install -y libonig-dev \
+    && docker-php-ext-install pdo_mysql mysqli mbstring \
+    && apt-get install -y git unzip vim \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+    
+# Laravel でルート以外にアクセスするためのモジュール追加
+RUN a2enmod rewrite
+
+WORKDIR /var/www/html

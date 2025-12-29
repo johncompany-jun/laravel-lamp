@@ -21,10 +21,18 @@ class Event extends Model
         'notes',
         'status',
         'created_by',
+        'is_recurring',
+        'recurrence_type',
+        'recurrence_end_date',
+        'parent_event_id',
+        'is_template',
     ];
 
     protected $casts = [
         'event_date' => 'date',
+        'recurrence_end_date' => 'date',
+        'is_recurring' => 'boolean',
+        'is_template' => 'boolean',
     ];
 
     /**
@@ -57,5 +65,21 @@ class Event extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(EventAssignment::class);
+    }
+
+    /**
+     * Get the parent event (for recurring events).
+     */
+    public function parentEvent(): BelongsTo
+    {
+        return $this->belongsTo(Event::class, 'parent_event_id');
+    }
+
+    /**
+     * Get child events (recurring instances).
+     */
+    public function childEvents(): HasMany
+    {
+        return $this->hasMany(Event::class, 'parent_event_id');
     }
 }

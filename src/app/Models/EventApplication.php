@@ -15,6 +15,8 @@ class EventApplication extends Model
         'event_application_slot_id',
         'user_id',
         'availability',
+        'can_help_setup',
+        'can_help_cleanup',
         'comment',
     ];
 

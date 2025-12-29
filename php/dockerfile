@@ -1,7 +1,7 @@
 FROM php:8.2-apache
 
 # Composerのインストール
-RUN cd /usr/bin && curl -s http://getcomposer.org/installer | php && ln -s /usr/bin/composer.phar /usr/bin/composer
+RUN cd /usr/bin && curl -s https://getcomposer.org/installer | php && ln -s /usr/bin/composer.phar /usr/bin/composer
 RUN composer config --global process-timeout 3600
 # php.iniをコンテナ内に配置
 COPY php.ini /usr/local/etc/php/

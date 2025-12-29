@@ -248,4 +248,58 @@ class EventController extends Controller
             $currentDate->addWeek();
         }
     }
+
+    /**
+     * Show the assignment creation page for an event.
+     */
+    public function createAssignments(Event $event)
+    {
+        // Load event with all necessary relationships
+        $event->load([
+            'slots',
+            'applicationSlots.applications' => function ($query) {
+                $query->with('user');
+            }
+        ]);
+
+        // Get all applications for this event, grouped by user
+        $applications = \App\Models\EventApplication::where('event_id', $event->id)
+            ->with(['user', 'applicationSlot'])
+            ->get()
+            ->groupBy('user_id');
+
+        // Get existing assignments
+        $existingAssignments = \App\Models\EventAssignment::where('event_id', $event->id)
+            ->with(['user', 'slot'])
+            ->get();
+
+        return view('admin.events.assignments.create', compact('event', 'applications', 'existingAssignments'));
+    }
+
+    /**
+     * Store assignments for an event.
+     */
+    public function storeAssignments(Request $request, Event $event)
+    {
+        $validated = $request->validate([
+            'assignments' => 'required|array',
+            'assignments.*.slot_id' => 'required|exists:event_time_slots,id',
+            'assignments.*.user_id' => 'required|exists:users,id',
+        ]);
+
+        // Delete existing assignments for this event
+        \App\Models\EventAssignment::where('event_id', $event->id)->delete();
+
+        // Create new assignments
+        foreach ($validated['assignments'] as $assignment) {
+            \App\Models\EventAssignment::create([
+                'event_id' => $event->id,
+                'event_time_slot_id' => $assignment['slot_id'],
+                'user_id' => $assignment['user_id'],
+            ]);
+        }
+
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Assignments created successfully!');
+    }
 }

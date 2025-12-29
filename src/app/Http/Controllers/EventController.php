@@ -98,4 +98,55 @@ class EventController extends Controller
         return redirect()->route('dashboard')
             ->with('success', 'Application submitted successfully!');
     }
+
+    /**
+     * Cancel an event application.
+     */
+    public function cancelApplication(EventApplication $application)
+    {
+        $user = auth()->user();
+
+        // Ensure the application belongs to the authenticated user
+        if ($application->user_id !== $user->id) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Unauthorized action.');
+        }
+
+        // Get all applications for this event by this user, ordered by time slot
+        $allUserApplications = EventApplication::where('event_id', $application->event_id)
+            ->where('user_id', $user->id)
+            ->with('applicationSlot')
+            ->get()
+            ->sortBy(function ($app) {
+                return $app->applicationSlot->start_time;
+            })
+            ->values();
+
+        // Check if this is the first or last slot
+        $isFirstSlot = $allUserApplications->first()->id === $application->id;
+        $isLastSlot = $allUserApplications->last()->id === $application->id;
+
+        // Delete the application
+        $application->delete();
+
+        // Update remaining applications if needed
+        if ($allUserApplications->count() > 1) {
+            // If we cancelled the first slot and it had setup help, remove setup from all remaining
+            if ($isFirstSlot && $application->can_help_setup) {
+                EventApplication::where('event_id', $application->event_id)
+                    ->where('user_id', $user->id)
+                    ->update(['can_help_setup' => false]);
+            }
+
+            // If we cancelled the last slot and it had cleanup help, remove cleanup from all remaining
+            if ($isLastSlot && $application->can_help_cleanup) {
+                EventApplication::where('event_id', $application->event_id)
+                    ->where('user_id', $user->id)
+                    ->update(['can_help_cleanup' => false]);
+            }
+        }
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Application cancelled successfully!');
+    }
 }

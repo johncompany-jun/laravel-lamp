@@ -80,6 +80,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('admin.events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
                                                 <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                                <a href="{{ route('admin.events.assignments.create', $event) }}" class="text-green-600 hover:text-green-900 mr-3">Assign</a>
                                                 <form action="{{ route('admin.events.destroy', $event) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')

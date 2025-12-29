@@ -22,12 +22,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
     Route::post('/events/{event}/apply', [EventController::class, 'apply'])->name('events.apply');
+    Route::delete('/applications/{application}', [EventController::class, 'cancelApplication'])->name('applications.cancel');
 });
 
 // Admin Routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('events', AdminEventController::class);
+    Route::get('/events/{event}/assignments/create', [AdminEventController::class, 'createAssignments'])->name('events.assignments.create');
+    Route::post('/events/{event}/assignments', [AdminEventController::class, 'storeAssignments'])->name('events.assignments.store');
 });
 
 require __DIR__.'/auth.php';

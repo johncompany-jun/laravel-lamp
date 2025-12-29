@@ -1,6 +1,7 @@
 services:
   db:
     image: mysql:8.0
+    platform: linux/amd64
     container_name: laravel_mysql
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
@@ -17,6 +18,7 @@ services:
     restart: unless-stopped
   phpmyadmin:
     image: phpmyadmin
+    platform: linux/amd64
     container_name: laravel_phpmyadmin
     depends_on:
       db:

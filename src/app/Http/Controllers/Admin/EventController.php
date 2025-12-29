@@ -45,6 +45,7 @@ class EventController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'slot_duration' => 'required|in:10,20,30',
+            'application_slot_duration' => 'required|in:30,60,90,120',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'required|in:draft,open,closed,completed',
@@ -55,9 +56,14 @@ class EventController extends Controller
         ]);
 
         $validated['created_by'] = auth()->id();
+        $validated['slot_duration'] = (int) $validated['slot_duration'];
+        $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
 
         // Create the main event
         $event = Event::create($validated);
+
+        // Generate application slots based on application_slot_duration
+        $this->generateApplicationSlots($event);
 
         // Generate time slots based on slot_duration
         $this->generateTimeSlots($event);
@@ -74,25 +80,87 @@ class EventController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Event $event)
     {
-        //
+        $event->load(['slots.assignments.user', 'applications.user', 'childEvents']);
+
+        return view('admin.events.show', compact('event'));
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Event $event)
     {
-        //
+        // Get template events for quick creation
+        $templates = Event::where('is_template', true)
+            ->where('id', '!=', $event->id)
+            ->orderBy('title')
+            ->get();
+
+        return view('admin.events.edit', compact('event', 'templates'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Event $event)
     {
-        //
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'event_date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'slot_duration' => 'required|in:10,20,30',
+            'application_slot_duration' => 'required|in:30,60,90,120',
+            'location' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+            'status' => 'required|in:draft,open,closed,completed',
+            'is_template' => 'boolean',
+        ]);
+
+        $validated['slot_duration'] = (int) $validated['slot_duration'];
+        $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
+
+        // Check if time slots need to be regenerated
+        $needsSlotRegeneration =
+            $event->start_time !== $validated['start_time'] ||
+            $event->end_time !== $validated['end_time'] ||
+            $event->slot_duration !== $validated['slot_duration'];
+
+        // Check if application slots need to be regenerated
+        $needsApplicationSlotRegeneration =
+            $event->start_time !== $validated['start_time'] ||
+            $event->end_time !== $validated['end_time'] ||
+            $event->application_slot_duration !== $validated['application_slot_duration'];
+
+        // Update the event
+        $event->update($validated);
+
+        // Regenerate application slots if needed
+        if ($needsApplicationSlotRegeneration) {
+            // Delete existing application slots (only if no applications)
+            $hasApplications = $event->applicationSlots()->whereHas('applications')->exists();
+
+            if (!$hasApplications) {
+                $event->applicationSlots()->delete();
+                $this->generateApplicationSlots($event);
+            }
+        }
+
+        // Regenerate time slots if needed
+        if ($needsSlotRegeneration) {
+            // Delete existing slots (only if no assignments)
+            $hasAssignments = $event->slots()->whereHas('assignments')->exists();
+
+            if (!$hasAssignments) {
+                $event->slots()->delete();
+                $this->generateTimeSlots($event);
+            }
+        }
+
+        return redirect()->route('admin.events.show', $event)
+            ->with('success', 'Event updated successfully!');
     }
 
     /**
@@ -104,6 +172,31 @@ class EventController extends Controller
 
         return redirect()->route('admin.events.index')
             ->with('success', 'Event deleted successfully!');
+    }
+
+    /**
+     * Generate application slots for an event based on application_slot_duration.
+     */
+    protected function generateApplicationSlots(Event $event)
+    {
+        $startTime = \Carbon\Carbon::parse($event->start_time);
+        $endTime = \Carbon\Carbon::parse($event->end_time);
+        $duration = $event->application_slot_duration;
+
+        $currentTime = $startTime->copy();
+
+        while ($currentTime->lt($endTime)) {
+            $slotEnd = $currentTime->copy()->addMinutes($duration);
+
+            if ($slotEnd->lte($endTime)) {
+                $event->applicationSlots()->create([
+                    'start_time' => $currentTime->format('H:i:s'),
+                    'end_time' => $slotEnd->format('H:i:s'),
+                ]);
+            }
+
+            $currentTime->addMinutes($duration);
+        }
     }
 
     /**

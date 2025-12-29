@@ -12,6 +12,7 @@ class EventApplication extends Model
 
     protected $fillable = [
         'event_id',
+        'event_application_slot_id',
         'user_id',
         'availability',
         'comment',
@@ -23,6 +24,14 @@ class EventApplication extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * Get the application slot this application belongs to.
+     */
+    public function applicationSlot(): BelongsTo
+    {
+        return $this->belongsTo(EventApplicationSlot::class, 'event_application_slot_id');
     }
 
     /**

@@ -17,6 +17,7 @@ class Event extends Model
         'start_time',
         'end_time',
         'slot_duration',
+        'application_slot_duration',
         'location',
         'notes',
         'status',
@@ -44,11 +45,19 @@ class Event extends Model
     }
 
     /**
-     * Get all time slots for this event.
+     * Get all time slots for this event (for assignment).
      */
     public function slots(): HasMany
     {
         return $this->hasMany(EventSlot::class);
+    }
+
+    /**
+     * Get all application slots for this event (for user applications).
+     */
+    public function applicationSlots(): HasMany
+    {
+        return $this->hasMany(EventApplicationSlot::class);
     }
 
     /**

@@ -24,15 +24,6 @@
                 </div>
             @endif
 
-            <!-- Debug Information -->
-            <div class="bg-yellow-50 border border-yellow-300 p-4 rounded mb-4">
-                <h4 class="font-bold">Debug Info:</h4>
-                <p>Applications count: {{ $applications->count() }}</p>
-                <p>Time slots count: {{ $event->slots->count() }}</p>
-                <p>Application slots count: {{ $event->applicationSlots->count() }}</p>
-                <p>Existing assignments count: {{ $existingAssignments->count() }}</p>
-            </div>
-
             <!-- Event Information -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -69,7 +60,7 @@
                     <form method="POST" action="{{ route('admin.events.assignments.store', $event) }}" id="assignmentForm">
                         @csrf
 
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto mb-6">
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead>
                                     <tr class="bg-gray-100">
@@ -137,11 +128,11 @@
                                                     onclick="toggleAssignment(this)"
                                                     title="Slot:{{ $slot->id }}, User:{{ $userId }}, Has:{{ $hasApplication ? 'Y' : 'N' }}, Avail:{{ $isAvailable ? 'Y' : 'N' }}">
                                                     @if($isAssigned)
-                                                        <span class="inline-block w-6 h-6 bg-indigo-600 rounded-full" style="display: inline-block !important;"></span>
+                                                        <span class="inline-block w-6 h-6 bg-indigo-600 rounded-full" style="display: inline-block !important; width: 24px !important; height: 24px !important; background-color: #4F46E5 !important; border-radius: 50% !important;"></span>
                                                     @elseif($hasApplication && $isAvailable)
-                                                        <span class="inline-block w-6 h-6 border-2 border-green-500 rounded-full" style="display: inline-block !important;"></span>
+                                                        <span class="inline-block w-6 h-6 border-2 border-green-500 rounded-full" style="display: inline-block !important; width: 24px !important; height: 24px !important; border: 2px solid #10B981 !important; border-radius: 50% !important;"></span>
                                                     @elseif($hasApplication && !$isAvailable)
-                                                        <span class="inline-block w-6 h-6 bg-gray-400 rounded-full" style="display: inline-block !important;" title="Unavailable"></span>
+                                                        <span class="inline-block w-6 h-6 bg-gray-400 rounded-full" style="display: inline-block !important; width: 24px !important; height: 24px !important; background-color: #9CA3AF !important; border-radius: 50% !important;" title="Unavailable"></span>
                                                     @else
                                                         <span class="text-gray-300">-</span>
                                                     @endif
@@ -183,7 +174,7 @@
                                 <a href="{{ route('admin.events.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
                                     Cancel
                                 </a>
-                                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700" style="display: block !important; visibility: visible !important; background-color: #4F46E5 !important; color: white !important;">
                                     Save Assignments
                                 </button>
                             </div>
@@ -211,39 +202,32 @@
             const isAvailable = cell.dataset.available === '1';
             const hasApplication = cell.dataset.hasApplication === '1';
 
-            console.log('Toggle clicked:', { slotId, userId, isAvailable, hasApplication });
-
             // Only allow toggling for available applications
             if (!hasApplication || !isAvailable) {
-                console.log('Cannot toggle - not available or no application');
                 return;
             }
 
             const key = `${slotId}_${userId}`;
             const circle = cell.querySelector('span');
 
-            console.log('Circle element:', circle);
-            console.log('Current assignments:', Array.from(assignments));
-
             if (assignments.has(key)) {
                 // Remove assignment
                 assignments.delete(key);
                 circle.className = 'inline-block w-6 h-6 border-2 border-green-500 rounded-full';
+                circle.style.cssText = 'display: inline-block !important; width: 24px !important; height: 24px !important; border: 2px solid #10B981 !important; border-radius: 50% !important; background-color: transparent !important;';
                 cell.classList.remove('bg-indigo-100', 'hover:bg-indigo-200');
                 cell.classList.add('bg-green-50', 'hover:bg-green-100');
-                console.log('Assignment removed', 'Circle class:', circle.className, 'Cell class:', cell.className);
             } else {
                 // Add assignment
                 assignments.add(key);
                 circle.className = 'inline-block w-6 h-6 bg-indigo-600 rounded-full';
+                circle.style.cssText = 'display: inline-block !important; width: 24px !important; height: 24px !important; background-color: #4F46E5 !important; border-radius: 50% !important;';
                 cell.classList.remove('bg-green-50', 'hover:bg-green-100');
                 cell.classList.add('bg-indigo-100', 'hover:bg-indigo-200');
-                console.log('Assignment added', 'Circle class:', circle.className, 'Cell class:', cell.className);
             }
 
             updateAssignmentInputs();
             updateAssignmentCount();
-            console.log('Updated assignments:', Array.from(assignments));
         }
 
         function updateAssignmentInputs() {

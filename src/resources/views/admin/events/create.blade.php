@@ -114,6 +114,29 @@
                             @enderror
                         </div>
 
+                        <!-- Multiple Locations -->
+                        <div class="mb-4">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">Locations for Assignment (2-3 areas)</label>
+                            <div id="locationsContainer">
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" name="locations[]" placeholder="例: 北西" value="{{ old('locations.0') }}"
+                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                                </div>
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" name="locations[]" placeholder="例: 北東" value="{{ old('locations.1') }}"
+                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                                </div>
+                                <div class="flex gap-2 mb-2">
+                                    <input type="text" name="locations[]" placeholder="例: 南側 (optional)" value="{{ old('locations.2') }}"
+                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Enter 2-3 location names for this event (e.g., 北西, 北東)</p>
+                            @error('locations')
+                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Notes -->
                         <div class="mb-4">
                             <label for="notes" class="block font-medium text-sm text-gray-700">Notes</label>

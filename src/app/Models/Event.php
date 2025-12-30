@@ -19,6 +19,7 @@ class Event extends Model
         'slot_duration',
         'application_slot_duration',
         'location',
+        'locations',
         'notes',
         'status',
         'created_by',
@@ -34,6 +35,7 @@ class Event extends Model
         'recurrence_end_date' => 'date',
         'is_recurring' => 'boolean',
         'is_template' => 'boolean',
+        'locations' => 'array',
     ];
 
     /**

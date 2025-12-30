@@ -47,6 +47,8 @@ class EventController extends Controller
             'slot_duration' => 'required|in:10,20,30',
             'application_slot_duration' => 'required|in:30,60,90,120',
             'location' => 'nullable|string|max:255',
+            'locations' => 'nullable|array|max:3',
+            'locations.*' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'required|in:draft,open,closed,completed',
             'is_recurring' => 'boolean',
@@ -58,6 +60,11 @@ class EventController extends Controller
         $validated['created_by'] = auth()->id();
         $validated['slot_duration'] = (int) $validated['slot_duration'];
         $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
+
+        // Filter out empty locations
+        if (isset($validated['locations'])) {
+            $validated['locations'] = array_values(array_filter($validated['locations'], fn($loc) => !empty($loc)));
+        }
 
         // Create the main event
         $event = Event::create($validated);
@@ -114,6 +121,8 @@ class EventController extends Controller
             'slot_duration' => 'required|in:10,20,30',
             'application_slot_duration' => 'required|in:30,60,90,120',
             'location' => 'nullable|string|max:255',
+            'locations' => 'nullable|array|max:3',
+            'locations.*' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
             'status' => 'required|in:draft,open,closed,completed',
             'is_template' => 'boolean',
@@ -122,11 +131,18 @@ class EventController extends Controller
         $validated['slot_duration'] = (int) $validated['slot_duration'];
         $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
 
+        // Filter out empty locations
+        if (isset($validated['locations'])) {
+            $validated['locations'] = array_values(array_filter($validated['locations'], fn($loc) => !empty($loc)));
+        }
+
         // Check if time slots need to be regenerated
+        $locationsChanged = json_encode($event->locations ?? []) !== json_encode($validated['locations'] ?? []);
         $needsSlotRegeneration =
             $event->start_time !== $validated['start_time'] ||
             $event->end_time !== $validated['end_time'] ||
-            $event->slot_duration !== $validated['slot_duration'];
+            $event->slot_duration !== $validated['slot_duration'] ||
+            $locationsChanged;
 
         // Check if application slots need to be regenerated
         $needsApplicationSlotRegeneration =
@@ -207,6 +223,7 @@ class EventController extends Controller
         $startTime = \Carbon\Carbon::parse($event->start_time);
         $endTime = \Carbon\Carbon::parse($event->end_time);
         $duration = $event->slot_duration;
+        $locations = $event->locations ?? [];
 
         $currentTime = $startTime->copy();
 
@@ -214,11 +231,24 @@ class EventController extends Controller
             $slotEnd = $currentTime->copy()->addMinutes($duration);
 
             if ($slotEnd->lte($endTime)) {
-                $event->slots()->create([
-                    'start_time' => $currentTime->format('H:i:s'),
-                    'end_time' => $slotEnd->format('H:i:s'),
-                    'capacity' => 1, // Default capacity, can be made configurable
-                ]);
+                // If locations are defined, create a slot for each location
+                if (!empty($locations)) {
+                    foreach ($locations as $location) {
+                        $event->slots()->create([
+                            'start_time' => $currentTime->format('H:i:s'),
+                            'end_time' => $slotEnd->format('H:i:s'),
+                            'location' => $location,
+                            'capacity' => 1, // Default capacity, can be made configurable
+                        ]);
+                    }
+                } else {
+                    // No locations defined, create a single slot
+                    $event->slots()->create([
+                        'start_time' => $currentTime->format('H:i:s'),
+                        'end_time' => $slotEnd->format('H:i:s'),
+                        'capacity' => 1,
+                    ]);
+                }
             }
 
             $currentTime->addMinutes($duration);
@@ -283,8 +313,9 @@ class EventController extends Controller
     {
         $validated = $request->validate([
             'assignments' => 'required|array',
-            'assignments.*.slot_id' => 'required|exists:event_time_slots,id',
+            'assignments.*.slot_id' => 'required|exists:event_slots,id',
             'assignments.*.user_id' => 'required|exists:users,id',
+            'assignments.*.role' => 'required|in:participant,leader',
         ]);
 
         // Delete existing assignments for this event
@@ -296,6 +327,7 @@ class EventController extends Controller
                 'event_id' => $event->id,
                 'event_time_slot_id' => $assignment['slot_id'],
                 'user_id' => $assignment['user_id'],
+                'role' => $assignment['role'],
             ]);
         }
 

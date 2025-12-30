@@ -12,8 +12,10 @@ class EventAssignment extends Model
 
     protected $fillable = [
         'event_id',
+        'event_time_slot_id',
         'event_slot_id',
         'user_id',
+        'role',
         'assigned_by',
     ];
 

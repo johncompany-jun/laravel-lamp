@@ -2,10 +2,14 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Events Management') }}
+                {{ __('events.management') }}
             </h2>
-            <a href="{{ route('admin.events.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                Create New Event
+            <a href="{{ route('admin.events.create') }}"
+               style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background-color: #4F46E5; color: white; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.2s;"
+               onmouseover="this.style.backgroundColor='#4338CA'"
+               onmouseout="this.style.backgroundColor='#4F46E5'">
+                <span class="material-icons" style="font-size: 20px;">add_circle</span>
+                {{ __('events.create_new') }}
             </a>
         </div>
     </x-slot>
@@ -13,7 +17,8 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 20px;">check_circle</span>
                     {{ session('success') }}
                 </div>
             @endif
@@ -25,67 +30,133 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                <span class="material-icons" style="font-size: 16px;">event</span>
+                                                {{ __('events.title') }}
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                <span class="material-icons" style="font-size: 16px;">calendar_today</span>
+                                                {{ __('events.date') }}
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                <span class="material-icons" style="font-size: 16px;">schedule</span>
+                                                {{ __('events.time') }}
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                <span class="material-icons" style="font-size: 16px;">info</span>
+                                                {{ __('events.status') }}
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div style="display: flex; align-items: center; gap: 4px;">
+                                                <span class="material-icons" style="font-size: 16px;">people</span>
+                                                {{ __('events.applications') }}
+                                            </div>
+                                        </th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.actions') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($events as $event)
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap">
+                                        <tr style="transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='#F9FAFB'" onmouseout="this.style.backgroundColor='white'">
+                                            <td class="px-6 py-4">
                                                 <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
-                                                @if($event->is_recurring)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                        Recurring
-                                                    </span>
-                                                @endif
-                                                @if($event->is_template)
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                                        Template
-                                                    </span>
-                                                @endif
+                                                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                                    @if($event->is_recurring)
+                                                        <span style="display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; background-color: #DBEAFE; color: #1E40AF; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                                            <span class="material-icons" style="font-size: 12px;">repeat</span>
+                                                            {{ __('events.recurring') }}
+                                                        </span>
+                                                    @endif
+                                                    @if($event->is_template)
+                                                        <span style="display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; background-color: #E9D5FF; color: #6B21A8; border-radius: 12px; font-size: 11px; font-weight: 500;">
+                                                            <span class="material-icons" style="font-size: 12px;">description</span>
+                                                            {{ __('events.template') }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $event->event_date->format('M d, Y') }}
+                                                {{ $event->event_date->format('Y-m-d') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @if($event->status === 'draft')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                        Draft
+                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #F3F4F6; color: #374151; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                                                        <span class="material-icons" style="font-size: 14px;">edit</span>
+                                                        {{ __('events.draft') }}
                                                     </span>
                                                 @elseif($event->status === 'open')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                        Open
+                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #D1FAE5; color: #065F46; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                                                        <span class="material-icons" style="font-size: 14px;">check_circle</span>
+                                                        {{ __('events.open') }}
                                                     </span>
                                                 @elseif($event->status === 'closed')
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                        Closed
+                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #FEE2E2; color: #991B1B; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                                                        <span class="material-icons" style="font-size: 14px;">cancel</span>
+                                                        {{ __('events.closed') }}
                                                     </span>
                                                 @else
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        Completed
+                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #DBEAFE; color: #1E40AF; border-radius: 16px; font-size: 12px; font-weight: 500;">
+                                                        <span class="material-icons" style="font-size: 14px;">done_all</span>
+                                                        {{ __('events.completed') }}
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $event->applications()->count() }} / {{ $event->slots()->count() }} slots
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <span class="material-icons" style="font-size: 18px; color: #6B7280;">group</span>
+                                                    <span class="text-sm font-medium text-gray-900">{{ $event->applications()->count() }}</span>
+                                                </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <a href="{{ route('admin.events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
-                                                <a href="{{ route('admin.events.edit', $event) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                                <a href="{{ route('admin.events.assignments.create', $event) }}" class="text-green-600 hover:text-green-900 mr-3">Assign</a>
-                                                <form action="{{ route('admin.events.destroy', $event) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this event?')">Delete</button>
-                                                </form>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                <div style="display: inline-flex; gap: 4px;">
+                                                    <a href="{{ route('admin.events.show', $event) }}"
+                                                       title="{{ __('events.view_details') }}"
+                                                       style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #EEF2FF; color: #4F46E5; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;"
+                                                       onmouseover="this.style.backgroundColor='#E0E7FF'"
+                                                       onmouseout="this.style.backgroundColor='#EEF2FF'">
+                                                        <span class="material-icons" style="font-size: 18px;">visibility</span>
+                                                    </a>
+
+                                                    <a href="{{ route('admin.events.edit', $event) }}"
+                                                       title="{{ __('events.edit_event_btn') }}"
+                                                       style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #DBEAFE; color: #1E40AF; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;"
+                                                       onmouseover="this.style.backgroundColor='#BFDBFE'"
+                                                       onmouseout="this.style.backgroundColor='#DBEAFE'">
+                                                        <span class="material-icons" style="font-size: 18px;">edit</span>
+                                                    </a>
+
+                                                    <a href="{{ route('admin.events.assignments.create', $event) }}"
+                                                       title="{{ __('events.assign_users_btn') }}"
+                                                       style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #D1FAE5; color: #065F46; border-radius: 6px; text-decoration: none; transition: background-color 0.2s;"
+                                                       onmouseover="this.style.backgroundColor='#A7F3D0'"
+                                                       onmouseout="this.style.backgroundColor='#D1FAE5'">
+                                                        <span class="material-icons" style="font-size: 18px;">assignment_ind</span>
+                                                    </a>
+
+                                                    <form action="{{ route('admin.events.destroy', $event) }}" method="POST" style="display: inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                                title="{{ __('events.delete_event') }}"
+                                                                onclick="return confirm('{{ __('events.delete_confirm') }}')"
+                                                                style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #FEE2E2; color: #991B1B; border-radius: 6px; border: none; cursor: pointer; transition: background-color 0.2s;"
+                                                                onmouseover="this.style.backgroundColor='#FECACA'"
+                                                                onmouseout="this.style.backgroundColor='#FEE2E2'">
+                                                            <span class="material-icons" style="font-size: 18px;">delete</span>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -98,14 +169,18 @@
                         </div>
                     @else
                         <div class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No events</h3>
-                            <p class="mt-1 text-sm text-gray-500">Get started by creating a new event.</p>
+                            <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+                                <span class="material-icons" style="font-size: 64px; color: #D1D5DB;">event_busy</span>
+                            </div>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">{{ __('events.no_events') }}</h3>
+                            <p class="mt-1 text-sm text-gray-500">{{ __('events.get_started') }}</p>
                             <div class="mt-6">
-                                <a href="{{ route('admin.events.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                                    Create Event
+                                <a href="{{ route('admin.events.create') }}"
+                                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background-color: #4F46E5; color: white; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.2s;"
+                                   onmouseover="this.style.backgroundColor='#4338CA'"
+                                   onmouseout="this.style.backgroundColor='#4F46E5'">
+                                    <span class="material-icons" style="font-size: 20px;">add_circle</span>
+                                    {{ __('events.create_event') }}
                                 </a>
                             </div>
                         </div>

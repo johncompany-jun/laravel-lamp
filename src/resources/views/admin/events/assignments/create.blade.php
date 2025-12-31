@@ -120,13 +120,17 @@
                                                 @php
                                                     $slot = $slotMatrix[$timeKey]['default'] ?? null;
                                                 @endphp
-                                                <td class="border border-gray-300 px-2 py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                                                    data-slot-id="{{ $slot?->id }}"
+                                                <td class="border border-gray-300 px-2 py-2 {{ $slot ? 'bg-gray-50 cursor-pointer hover:bg-gray-100' : 'bg-red-50' }}"
+                                                    data-slot-id="{{ $slot?->id ?? '' }}"
                                                     data-time="{{ $startTime }}-{{$endTime}}"
                                                     data-location="default"
-                                                    onclick="openAssignmentModal(this)">
-                                                    <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id }}">
-                                                        <span class="text-gray-400 text-sm">Click to assign</span>
+                                                    onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'No time slot found. Please edit the event to regenerate slots.\')' }}">
+                                                    <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id ?? 'none' }}">
+                                                        @if($slot)
+                                                            <span class="text-gray-400 text-sm">Click to assign</span>
+                                                        @else
+                                                            <span class="text-red-500 text-xs">No slot</span>
+                                                        @endif
                                                     </div>
                                                 </td>
                                             @else
@@ -134,13 +138,17 @@
                                                     @php
                                                         $slot = $slotMatrix[$timeKey][$location] ?? null;
                                                     @endphp
-                                                    <td class="border border-gray-300 px-2 py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
-                                                        data-slot-id="{{ $slot?->id }}"
+                                                    <td class="border border-gray-300 px-2 py-2 {{ $slot ? 'bg-gray-50 cursor-pointer hover:bg-gray-100' : 'bg-red-50' }}"
+                                                        data-slot-id="{{ $slot?->id ?? '' }}"
                                                         data-time="{{ $startTime }}-{{$endTime}}"
                                                         data-location="{{ $location }}"
-                                                        onclick="openAssignmentModal(this)">
-                                                        <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id }}">
-                                                            <span class="text-gray-400 text-sm">Click to assign</span>
+                                                        onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'No time slot found for ' . $location . '. Please edit the event to regenerate slots.\')' }}">
+                                                        <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id ?? 'none-' . $loop->index }}">
+                                                            @if($slot)
+                                                                <span class="text-gray-400 text-sm">Click to assign</span>
+                                                            @else
+                                                                <span class="text-red-500 text-xs">No slot</span>
+                                                            @endif
                                                         </div>
                                                     </td>
                                                 @endforeach
@@ -155,11 +163,11 @@
                             <div id="assignmentCount" class="text-sm text-gray-600">
                                 <span class="font-semibold" id="assignedCount">0</span> assignments created
                             </div>
-                            <div class="flex gap-4">
-                                <a href="{{ route('admin.events.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                            <div style="display: flex; gap: 16px;">
+                                <a href="{{ route('admin.events.index') }}" style="display: inline-block; padding: 8px 16px; background-color: #E5E7EB; color: #374151; border-radius: 6px; text-decoration: none; border: 1px solid #D1D5DB; font-size: 14px; font-weight: 500;">
                                     Cancel
                                 </a>
-                                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700" style="display: block !important; visibility: visible !important; background-color: #4F46E5 !important; color: white !important;">
+                                <button type="submit" style="display: inline-block; padding: 10px 24px; background-color: #4F46E5; color: white; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#4338CA'" onmouseout="this.style.backgroundColor='#4F46E5'">
                                     Save Assignments
                                 </button>
                             </div>
@@ -174,32 +182,32 @@
     </div>
 
     <!-- Assignment Modal -->
-    <div id="assignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+    <div id="assignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50" style="display: none;" onclick="event.target === this && closeAssignmentModal()">
+        <div class="relative mx-auto border shadow-lg rounded-md bg-white" style="margin-top: 80px; margin-bottom: 80px; max-height: calc(100vh - 160px); overflow-y: auto; width: 600px; max-width: 90%; padding: 32px;">
+            <div>
+                <h3 style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 24px;">
                     Assign Users - <span id="modalTitle"></span>
                 </h3>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Participants (Select 2)</label>
-                    <div id="participantsList" class="space-y-2 max-h-60 overflow-y-auto p-2 border rounded">
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Participants (Select 2)</label>
+                    <div id="participantsList" style="max-height: 240px; overflow-y: auto; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px;">
                         <!-- User checkboxes will be inserted here -->
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Leader (Optional, Select 1)</label>
-                    <div id="leadersList" class="space-y-2 max-h-40 overflow-y-auto p-2 border rounded">
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Leader (Optional, Select 1)</label>
+                    <div id="leadersList" style="max-height: 160px; overflow-y: auto; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px;">
                         <!-- Leader radio buttons will be inserted here -->
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-6">
-                    <button type="button" onclick="closeAssignmentModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; width: 100%;">
+                    <button type="button" onclick="closeAssignmentModal()" style="display: inline-block; padding: 8px 16px; background-color: #E5E7EB; color: #374151; border-radius: 6px; border: 1px solid #D1D5DB; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#D1D5DB'" onmouseout="this.style.backgroundColor='#E5E7EB'">
                         Cancel
                     </button>
-                    <button type="button" onclick="saveAssignment()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                    <button type="button" onclick="saveAssignment()" style="display: inline-block; padding: 8px 16px; background-color: #4F46E5; color: white; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#4338CA'" onmouseout="this.style.backgroundColor='#4F46E5'">
                         Save
                     </button>
                 </div>
@@ -240,8 +248,13 @@
             const time = cell.dataset.time;
             const location = cell.dataset.location;
 
-            if (!currentSlotId) {
-                alert('Invalid slot');
+            console.log('Cell clicked:', cell);
+            console.log('Slot ID:', currentSlotId);
+            console.log('Time:', time);
+            console.log('Location:', location);
+
+            if (!currentSlotId || currentSlotId === 'null' || currentSlotId === 'undefined') {
+                alert('Invalid slot - No slot ID found for this cell');
                 return;
             }
 
@@ -255,36 +268,54 @@
             participantsList.innerHTML = '';
             availableUsers.forEach(user => {
                 const div = document.createElement('div');
-                div.className = 'flex items-center';
+                div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
                 div.innerHTML = `
                     <input type="checkbox" id="participant-${user.id}" value="${user.id}"
                         ${currentAssignment.participants.includes(user.id) ? 'checked' : ''}
-                        class="participant-checkbox mr-2">
-                    <label for="participant-${user.id}" class="cursor-pointer">${user.name}</label>
+                        class="participant-checkbox"
+                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                    <label for="participant-${user.id}" style="cursor: pointer; flex: 1;">${user.name}</label>
                 `;
                 participantsList.appendChild(div);
             });
 
             // Populate leaders list
             const leadersList = document.getElementById('leadersList');
-            leadersList.innerHTML = '<div class="flex items-center"><input type="radio" name="leader" value="" id="leader-none" ' + (!currentAssignment.leader ? 'checked' : '') + ' class="mr-2"><label for="leader-none" class="cursor-pointer">なし</label></div>';
+            leadersList.innerHTML = '';
+
+            // Add "None" option
+            const noneDiv = document.createElement('div');
+            noneDiv.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
+            noneDiv.innerHTML = `
+                <input type="radio" name="leader" value="" id="leader-none"
+                    ${!currentAssignment.leader ? 'checked' : ''}
+                    style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                <label for="leader-none" style="cursor: pointer; flex: 1;">なし</label>
+            `;
+            leadersList.appendChild(noneDiv);
+
+            // Add user options
             availableUsers.forEach(user => {
                 const div = document.createElement('div');
-                div.className = 'flex items-center';
+                div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
                 div.innerHTML = `
                     <input type="radio" name="leader" value="${user.id}" id="leader-${user.id}"
                         ${currentAssignment.leader === user.id ? 'checked' : ''}
-                        class="mr-2">
-                    <label for="leader-${user.id}" class="cursor-pointer">${user.name}</label>
+                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                    <label for="leader-${user.id}" style="cursor: pointer; flex: 1;">${user.name}</label>
                 `;
                 leadersList.appendChild(div);
             });
 
-            document.getElementById('assignmentModal').classList.remove('hidden');
+            const modal = document.getElementById('assignmentModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
         }
 
         function closeAssignmentModal() {
-            document.getElementById('assignmentModal').classList.add('hidden');
+            const modal = document.getElementById('assignmentModal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
             currentSlotId = null;
             currentCell = null;
         }
@@ -322,19 +353,19 @@
 
             const assignment = assignments.get(slotId);
             if (!assignment || (assignment.participants.length === 0 && !assignment.leader)) {
-                cell.innerHTML = '<span class="text-gray-400 text-sm">Click to assign</span>';
+                cell.innerHTML = '<span style="color: #9CA3AF; font-size: 14px;">Click to assign</span>';
                 return;
             }
 
-            let html = '';
+            let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
             // Display participants
             if (assignment.participants.length > 0) {
-                html += '<div class="mb-2"><span class="text-xs font-semibold text-gray-600">Participants:</span><br>';
+                html += '<div>';
                 assignment.participants.forEach(userId => {
                     const user = availableUsers.find(u => u.id === userId);
                     if (user) {
-                        html += `<span class="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-xs mr-1 mb-1">${user.name}</span>`;
+                        html += `<span style="display: inline-block; padding: 4px 8px; background-color: #D1FAE5; color: #065F46; border-radius: 4px; font-size: 12px; margin-right: 4px; margin-bottom: 4px; font-weight: 500;">${user.name}</span>`;
                     }
                 });
                 html += '</div>';
@@ -344,12 +375,13 @@
             if (assignment.leader) {
                 const leader = availableUsers.find(u => u.id === assignment.leader);
                 if (leader) {
-                    html += '<div><span class="text-xs font-semibold text-gray-600">Leader:</span><br>';
-                    html += `<span class="inline-block px-2 py-1 bg-indigo-100 text-indigo-800 rounded text-xs">${leader.name}</span>`;
+                    html += '<div>';
+                    html += `<span style="display: inline-block; padding: 4px 8px; background-color: #E0E7FF; color: #3730A3; border-radius: 4px; font-size: 12px; font-weight: 600;">👑 ${leader.name}</span>`;
                     html += '</div>';
                 }
             }
 
+            html += '</div>';
             cell.innerHTML = html;
         }
 

@@ -15,6 +15,7 @@ class EventSlot extends Model
         'event_id',
         'start_time',
         'end_time',
+        'location',
         'capacity',
     ];
 

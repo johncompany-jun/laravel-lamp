@@ -40,6 +40,7 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
+      - "5173:5173"
     volumes:
       - ./src:/var/www/html
       - ./apache/default.conf:/etc/apache2/sites-enabled/000-default.conf

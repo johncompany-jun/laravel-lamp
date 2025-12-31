@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\ApplicationSlotDuration;
+use App\Enums\AssignmentSlotDuration;
 use App\Enums\EventStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +40,8 @@ class Event extends Model
         'is_template' => 'boolean',
         'locations' => 'array',
         'status' => EventStatus::class,
+        'slot_duration' => AssignmentSlotDuration::class,
+        'application_slot_duration' => ApplicationSlotDuration::class,
     ];
 
     /**

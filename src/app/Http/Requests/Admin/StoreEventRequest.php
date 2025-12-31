@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ApplicationSlotDuration;
+use App\Enums\AssignmentSlotDuration;
 use App\Enums\EventStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -28,8 +30,8 @@ class StoreEventRequest extends FormRequest
             'event_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
-            'slot_duration' => 'required|in:10,20,30',
-            'application_slot_duration' => 'required|in:30,60,90,120',
+            'slot_duration' => ['required', Rule::enum(AssignmentSlotDuration::class)],
+            'application_slot_duration' => ['required', Rule::enum(ApplicationSlotDuration::class)],
             'location' => 'nullable|string|max:255',
             'locations' => 'nullable|array|max:3',
             'locations.*' => 'nullable|string|max:255',

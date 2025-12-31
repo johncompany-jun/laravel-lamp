@@ -114,4 +114,23 @@ return [
     'note_assigned_slots' => 'このイベントには既にアサインされたタイムスロットがあります。時間とスロット時間は変更できません。',
     'note_recurring_event' => 'これは繰り返しイベントです。変更はこのイベントのみに適用され、繰り返しインスタンスには影響しません。',
     'update_event' => 'イベントを更新',
+
+    // Assignments Page
+    'create_assignments_title' => 'アサイン作成',
+    'back_to_events' => '← イベント一覧に戻る',
+    'event_details' => 'イベント詳細',
+    'assign_users_to_slots' => 'タイムスロット × 場所にユーザーをアサイン',
+    'assignment_instruction' => 'セルをクリックしてユーザーを選択してください。各場所は通常、参加者2名 + リーダー1名（任意）が必要です。',
+    'time' => '時間',
+    'assignments' => 'アサイン',
+    'participants_and_leader' => '参加者 (2) + リーダー (1)',
+    'click_to_assign' => 'クリックしてアサイン',
+    'no_slot' => 'スロットなし',
+    'no_slot_found' => 'スロットが見つかりません。イベントを編集してスロットを再生成してください。',
+    'no_slot_for_location' => 'のスロットが見つかりません。イベントを編集してスロットを再生成してください。',
+    'assignments_created' => '件のアサインを作成',
+    'assign_users_modal_title' => 'ユーザーをアサイン',
+    'select_participants_2' => '参加者を選択 (2名)',
+    'select_leader_optional' => 'リーダーを選択 (任意、1名)',
+    'invalid_slot' => '無効なスロット - このセルのスロットIDが見つかりません',
 ];

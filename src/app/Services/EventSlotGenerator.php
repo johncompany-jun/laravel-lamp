@@ -61,7 +61,7 @@ class EventSlotGenerator
                     'event_id' => $event->id,
                     'start_time' => $currentTime->format('H:i:s'),
                     'end_time' => $slotEnd->format('H:i:s'),
-                    'capacity' => 1,
+                    'capacity' => 3, // 2 participants + 1 leader
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];

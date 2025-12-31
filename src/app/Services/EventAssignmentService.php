@@ -23,9 +23,10 @@ class EventAssignmentService
         foreach ($assignments as $assignment) {
             EventAssignment::create([
                 'event_id' => $event->id,
-                'event_time_slot_id' => $assignment['slot_id'],
+                'event_slot_id' => $assignment['slot_id'],
                 'user_id' => $assignment['user_id'],
                 'role' => $assignment['role'],
+                'assigned_by' => auth()->id(),
             ]);
         }
     }

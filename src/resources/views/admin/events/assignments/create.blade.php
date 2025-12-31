@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Create Assignments: {{ $event->title }}
+                {{ __('events.create_assignments_title') }}: {{ $event->title }}
             </h2>
             <a href="{{ route('admin.events.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                ← Back to Events
+                {{ __('events.back_to_events') }}
             </a>
         </div>
     </x-slot>
@@ -27,19 +27,19 @@
             <!-- Event Information -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold mb-4">Event Details</h3>
+                    <h3 class="text-lg font-semibold mb-4">{{ __('events.event_details') }}</h3>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <p class="text-sm text-gray-600">Date</p>
-                            <p class="font-medium">{{ $event->event_date->format('M d, Y (D)') }}</p>
+                            <p class="text-sm text-gray-600">{{ __('events.date') }}</p>
+                            <p class="font-medium">{{ $event->event_date->format('Y-m-d (D)') }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-600">Time</p>
+                            <p class="text-sm text-gray-600">{{ __('events.time') }}</p>
                             <p class="font-medium">{{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}</p>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-600">Locations</p>
-                            <p class="font-medium">{{ !empty($event->locations) ? implode(', ', $event->locations) : 'Not set' }}</p>
+                            <p class="text-sm text-gray-600">{{ __('events.locations') }}</p>
+                            <p class="font-medium">{{ !empty($event->locations) ? implode(', ', $event->locations) : __('events.not_set') }}</p>
                         </div>
                     </div>
                 </div>
@@ -48,9 +48,9 @@
             <!-- Assignment Grid -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold mb-4">Assign Users to Time Slots × Locations</h3>
+                    <h3 class="text-lg font-semibold mb-4">{{ __('events.assign_users_to_slots') }}</h3>
                     <p class="text-sm text-gray-600 mb-4">
-                        Click on cells to open user selection. Each location typically needs 2 participants + 1 leader (optional).
+                        {{ __('events.assignment_instruction') }}
                     </p>
 
                     <form method="POST" action="{{ route('admin.events.assignments.store', $event) }}" id="assignmentForm">
@@ -87,17 +87,17 @@
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead>
                                     <tr class="bg-gray-100">
-                                        <th class="border border-gray-300 px-4 py-2 text-left font-semibold sticky left-0 bg-gray-100 z-10">Time</th>
+                                        <th class="border border-gray-300 px-4 py-2 text-left font-semibold sticky left-0 bg-gray-100 z-10">{{ __('events.time') }}</th>
                                         @if(empty($locations))
                                             <th class="border border-gray-300 px-4 py-2 text-center font-semibold">
-                                                Assignments
+                                                {{ __('events.assignments') }}
                                             </th>
                                         @else
                                             @foreach($locations as $location)
                                                 <th class="border border-gray-300 px-4 py-2 text-center font-semibold">
                                                     {{ $location }}
                                                     <div class="text-xs font-normal text-gray-500 mt-1">
-                                                        Participants (2) + Leader (1)
+                                                        {{ __('events.participants_and_leader') }}
                                                     </div>
                                                 </th>
                                             @endforeach
@@ -124,12 +124,12 @@
                                                     data-slot-id="{{ $slot?->id ?? '' }}"
                                                     data-time="{{ $startTime }}-{{$endTime}}"
                                                     data-location="default"
-                                                    onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'No time slot found. Please edit the event to regenerate slots.\')' }}">
+                                                    onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'' . __('events.no_slot_found') . '\')' }}">
                                                     <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id ?? 'none' }}">
                                                         @if($slot)
-                                                            <span class="text-gray-400 text-sm">Click to assign</span>
+                                                            <span class="text-gray-400 text-sm">{{ __('events.click_to_assign') }}</span>
                                                         @else
-                                                            <span class="text-red-500 text-xs">No slot</span>
+                                                            <span class="text-red-500 text-xs">{{ __('events.no_slot') }}</span>
                                                         @endif
                                                     </div>
                                                 </td>
@@ -142,12 +142,12 @@
                                                         data-slot-id="{{ $slot?->id ?? '' }}"
                                                         data-time="{{ $startTime }}-{{$endTime}}"
                                                         data-location="{{ $location }}"
-                                                        onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'No time slot found for ' . $location . '. Please edit the event to regenerate slots.\')' }}">
+                                                        onclick="{{ $slot ? 'openAssignmentModal(this)' : 'alert(\'' . $location . __('events.no_slot_for_location') . '\')' }}">
                                                         <div class="min-h-[60px] assignment-cell" id="cell-{{ $slot?->id ?? 'none-' . $loop->index }}">
                                                             @if($slot)
-                                                                <span class="text-gray-400 text-sm">Click to assign</span>
+                                                                <span class="text-gray-400 text-sm">{{ __('events.click_to_assign') }}</span>
                                                             @else
-                                                                <span class="text-red-500 text-xs">No slot</span>
+                                                                <span class="text-red-500 text-xs">{{ __('events.no_slot') }}</span>
                                                             @endif
                                                         </div>
                                                     </td>
@@ -161,14 +161,14 @@
 
                         <div class="mt-6 flex justify-between items-center">
                             <div id="assignmentCount" class="text-sm text-gray-600">
-                                <span class="font-semibold" id="assignedCount">0</span> assignments created
+                                <span class="font-semibold" id="assignedCount">0</span> {{ __('events.assignments_created') }}
                             </div>
                             <div style="display: flex; gap: 16px;">
                                 <a href="{{ route('admin.events.index') }}" style="display: inline-block; padding: 8px 16px; background-color: #E5E7EB; color: #374151; border-radius: 6px; text-decoration: none; border: 1px solid #D1D5DB; font-size: 14px; font-weight: 500;">
-                                    Cancel
+                                    {{ __('events.cancel') }}
                                 </a>
                                 <button type="submit" style="display: inline-block; padding: 10px 24px; background-color: #4F46E5; color: white; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#4338CA'" onmouseout="this.style.backgroundColor='#4F46E5'">
-                                    Save Assignments
+                                    {{ __('events.save_assignments') }}
                                 </button>
                             </div>
                         </div>
@@ -186,18 +186,18 @@
         <div class="relative mx-auto border shadow-lg rounded-md bg-white" style="margin-top: 80px; margin-bottom: 80px; max-height: calc(100vh - 160px); overflow-y: auto; width: 600px; max-width: 90%; padding: 32px;">
             <div>
                 <h3 style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 24px;">
-                    Assign Users - <span id="modalTitle"></span>
+                    {{ __('events.assign_users_modal_title') }} - <span id="modalTitle"></span>
                 </h3>
 
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Participants (Select 2)</label>
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">{{ __('events.select_participants_2') }}</label>
                     <div id="participantsList" style="max-height: 240px; overflow-y: auto; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px;">
                         <!-- User checkboxes will be inserted here -->
                     </div>
                 </div>
 
                 <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">Leader (Optional, Select 1)</label>
+                    <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">{{ __('events.select_leader_optional') }}</label>
                     <div id="leadersList" style="max-height: 160px; overflow-y: auto; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px;">
                         <!-- Leader radio buttons will be inserted here -->
                     </div>
@@ -205,10 +205,10 @@
 
                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; width: 100%;">
                     <button type="button" onclick="closeAssignmentModal()" style="display: inline-block; padding: 8px 16px; background-color: #E5E7EB; color: #374151; border-radius: 6px; border: 1px solid #D1D5DB; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#D1D5DB'" onmouseout="this.style.backgroundColor='#E5E7EB'">
-                        Cancel
+                        {{ __('events.cancel') }}
                     </button>
                     <button type="button" onclick="saveAssignment()" style="display: inline-block; padding: 8px 16px; background-color: #4F46E5; color: white; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#4338CA'" onmouseout="this.style.backgroundColor='#4F46E5'">
-                        Save
+                        {{ __('events.save') }}
                     </button>
                 </div>
             </div>
@@ -226,14 +226,14 @@
 
         // Load existing assignments
         @foreach($existingAssignments as $assignment)
-            const slotId{{ $assignment->event_time_slot_id }} = '{{ $assignment->event_time_slot_id }}';
-            if (!assignments.has(slotId{{ $assignment->event_time_slot_id }})) {
-                assignments.set(slotId{{ $assignment->event_time_slot_id }}, { participants: [], leader: null });
+            const slotId{{ $assignment->event_slot_id }} = '{{ $assignment->event_slot_id }}';
+            if (!assignments.has(slotId{{ $assignment->event_slot_id }})) {
+                assignments.set(slotId{{ $assignment->event_slot_id }}, { participants: [], leader: null });
             }
             if ('{{ $assignment->role }}' === 'leader') {
-                assignments.get(slotId{{ $assignment->event_time_slot_id }}).leader = {{ $assignment->user_id }};
+                assignments.get(slotId{{ $assignment->event_slot_id }}).leader = {{ $assignment->user_id }};
             } else {
-                assignments.get(slotId{{ $assignment->event_time_slot_id }}).participants.push({{ $assignment->user_id }});
+                assignments.get(slotId{{ $assignment->event_slot_id }}).participants.push({{ $assignment->user_id }});
             }
         @endforeach
 
@@ -254,7 +254,7 @@
             console.log('Location:', location);
 
             if (!currentSlotId || currentSlotId === 'null' || currentSlotId === 'undefined') {
-                alert('Invalid slot - No slot ID found for this cell');
+                alert('{{ __('events.invalid_slot') }}');
                 return;
             }
 
@@ -353,7 +353,7 @@
 
             const assignment = assignments.get(slotId);
             if (!assignment || (assignment.participants.length === 0 && !assignment.leader)) {
-                cell.innerHTML = '<span style="color: #9CA3AF; font-size: 14px;">Click to assign</span>';
+                cell.innerHTML = '<span style="color: #9CA3AF; font-size: 14px;">{{ __('events.click_to_assign') }}</span>';
                 return;
             }
 

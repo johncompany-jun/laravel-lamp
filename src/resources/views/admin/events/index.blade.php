@@ -65,57 +65,27 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($events as $event)
+                                        @php
+                                            $presenter = new \App\Presenters\EventPresenter($event);
+                                        @endphp
                                         <tr style="transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='#F9FAFB'" onmouseout="this.style.backgroundColor='white'">
                                             <td class="px-6 py-4">
                                                 <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
-                                                <div style="display: flex; gap: 4px; margin-top: 4px;">
-                                                    @if($event->is_recurring)
-                                                        <span style="display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; background-color: #DBEAFE; color: #1E40AF; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                                                            <span class="material-icons" style="font-size: 12px;">repeat</span>
-                                                            {{ __('events.recurring') }}
-                                                        </span>
-                                                    @endif
-                                                    @if($event->is_template)
-                                                        <span style="display: inline-flex; align-items: center; gap: 2px; padding: 2px 8px; background-color: #E9D5FF; color: #6B21A8; border-radius: 12px; font-size: 11px; font-weight: 500;">
-                                                            <span class="material-icons" style="font-size: 12px;">description</span>
-                                                            {{ __('events.template') }}
-                                                        </span>
-                                                    @endif
-                                                </div>
+                                                {!! $presenter->badges() !!}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $event->event_date->format('Y-m-d') }}
+                                                {{ $presenter->formattedDate() }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}
+                                                {{ $presenter->timeRange() }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                @if($event->status === 'draft')
-                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #F3F4F6; color: #374151; border-radius: 16px; font-size: 12px; font-weight: 500;">
-                                                        <span class="material-icons" style="font-size: 14px;">edit</span>
-                                                        {{ __('events.draft') }}
-                                                    </span>
-                                                @elseif($event->status === 'open')
-                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #D1FAE5; color: #065F46; border-radius: 16px; font-size: 12px; font-weight: 500;">
-                                                        <span class="material-icons" style="font-size: 14px;">check_circle</span>
-                                                        {{ __('events.open') }}
-                                                    </span>
-                                                @elseif($event->status === 'closed')
-                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #FEE2E2; color: #991B1B; border-radius: 16px; font-size: 12px; font-weight: 500;">
-                                                        <span class="material-icons" style="font-size: 14px;">cancel</span>
-                                                        {{ __('events.closed') }}
-                                                    </span>
-                                                @else
-                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: #DBEAFE; color: #1E40AF; border-radius: 16px; font-size: 12px; font-weight: 500;">
-                                                        <span class="material-icons" style="font-size: 14px;">done_all</span>
-                                                        {{ __('events.completed') }}
-                                                    </span>
-                                                @endif
+                                                {!! $presenter->statusBadge() !!}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <div style="display: flex; align-items: center; gap: 8px;">
                                                     <span class="material-icons" style="font-size: 18px; color: #6B7280;">group</span>
-                                                    <span class="text-sm font-medium text-gray-900">{{ $event->applications()->count() }}</span>
+                                                    <span class="text-sm font-medium text-gray-900">{{ $presenter->applicationsCount() }}</span>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-center">

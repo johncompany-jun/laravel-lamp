@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Open Events') }}
+            {{ __('events.open_events') }}
         </h2>
     </x-slot>
 
@@ -28,14 +28,14 @@
                                     <h3 class="font-semibold text-lg text-gray-900">{{ $event->title }}</h3>
                                     <div class="mt-3 space-y-2">
                                         <p class="text-sm text-gray-600">
-                                            <span class="font-medium">Date:</span> {{ $event->event_date->format('M d, Y (D)') }}
+                                            <span class="font-medium">{{ __('events.date') }}:</span> {{ $event->event_date->format('Y-m-d (D)') }}
                                         </p>
                                         <p class="text-sm text-gray-600">
-                                            <span class="font-medium">Time:</span> {{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}
+                                            <span class="font-medium">{{ __('events.time') }}:</span> {{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}
                                         </p>
                                         @if($event->location)
                                             <p class="text-sm text-gray-600">
-                                                <span class="font-medium">Location:</span> {{ $event->location }}
+                                                <span class="font-medium">{{ __('events.location') }}:</span> {{ $event->location }}
                                             </p>
                                         @endif
                                         @if($event->notes)
@@ -47,7 +47,7 @@
                                     <div class="mt-4">
                                         <a href="{{ route('events.show', $event) }}"
                                             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
-                                            View Details & Apply
+                                            {{ __('events.view_details_apply') }}
                                         </a>
                                     </div>
                                 </div>
@@ -58,7 +58,7 @@
                             {{ $events->links() }}
                         </div>
                     @else
-                        <p class="text-gray-500">No open events at the moment.</p>
+                        <p class="text-gray-500">{{ __('events.no_open_events') }}</p>
                     @endif
                 </div>
             </div>

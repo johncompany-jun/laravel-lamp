@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Http\Requests\SubmitEventApplicationRequest;
 use App\Models\Event;
 use App\Models\EventApplication;
@@ -34,6 +35,11 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
+        // Only allow users to view open events
+        if ($event->status !== EventStatus::OPEN) {
+            abort(404);
+        }
+
         $event = $this->queryService->getEventWithApplicationSlots($event);
         $user = auth()->user();
         $existingApplications = $this->applicationService->getUserApplications($user, $event);

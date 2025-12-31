@@ -1,0 +1,41 @@
+<?php
+
+return [
+    // Admin Dashboard
+    'admin_dashboard' => '管理画面',
+    'welcome_admin_panel' => '管理パネルへようこそ',
+    'logged_in_as_admin' => '管理者としてログインしています。',
+    'quick_actions' => 'クイックアクション',
+    'create_new_event' => '新しいイベントを作成',
+    'view_all_events' => 'すべてのイベントを表示',
+    'total_events' => '総イベント数',
+    'open_events_count' => '募集中のイベント',
+    'total_users' => '総ユーザー数',
+    'applications_count' => '申込数',
+
+    // User Dashboard
+    'dashboard' => 'ダッシュボード',
+    'open_events' => '募集中のイベント',
+    'accepting_applications' => '申込受付中',
+    'location' => '場所',
+    'apply' => '申込する',
+    'no_open_events' => '現在募集中のイベントはありません。',
+    'my_applications' => '申込履歴',
+    'event' => 'イベント',
+    'date' => '日付',
+    'time_slot' => 'タイムスロット',
+    'availability' => '可否',
+    'help' => 'お手伝い',
+    'applied' => '申込日',
+    'action' => '操作',
+    'available' => '可',
+    'unavailable' => '不可',
+    'setup' => '準備',
+    'cleanup' => '片付け',
+    'cancel' => 'キャンセル',
+    'cancel_confirm' => 'この申し込みをキャンセルしてもよろしいですか？',
+    'no_applications_yet' => 'まだイベントに申し込んでいません。',
+    'my_confirmed_schedule' => '確定スケジュール',
+    'no_assignments_yet' => 'まだ確定したアサインはありません。',
+    'n_a' => '未設定',
+];

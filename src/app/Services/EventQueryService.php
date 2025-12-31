@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventAssignment;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -14,7 +15,7 @@ class EventQueryService
      */
     public function getOpenEvents(int $perPage = 10): LengthAwarePaginator
     {
-        return Event::where('status', 'open')
+        return Event::where('status', EventStatus::OPEN)
             ->whereNull('parent_event_id')
             ->where('event_date', '>=', today())
             ->orderBy('event_date')

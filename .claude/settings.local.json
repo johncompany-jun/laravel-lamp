@@ -3,7 +3,9 @@
     "allow": [
       "Bash(docker exec:*)",
       "Bash(php artisan:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(docker compose logs:*)"
     ]
   }
 }

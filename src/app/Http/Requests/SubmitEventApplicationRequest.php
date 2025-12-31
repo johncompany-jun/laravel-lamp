@@ -11,7 +11,7 @@ class SubmitEventApplicationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class SubmitEventApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'can_help_setup' => 'nullable|boolean',
+            'can_help_cleanup' => 'nullable|boolean',
+            'comment' => 'nullable|string|max:500',
         ];
     }
 }

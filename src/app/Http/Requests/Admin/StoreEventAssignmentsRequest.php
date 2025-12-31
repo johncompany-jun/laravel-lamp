@@ -11,7 +11,7 @@ class StoreEventAssignmentsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,10 @@ class StoreEventAssignmentsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'assignments' => 'required|array',
+            'assignments.*.slot_id' => 'required|exists:event_slots,id',
+            'assignments.*.user_id' => 'required|exists:users,id',
+            'assignments.*.role' => 'required|in:participant,leader',
         ];
     }
 }

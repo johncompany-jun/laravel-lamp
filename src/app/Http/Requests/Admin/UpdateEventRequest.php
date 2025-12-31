@@ -11,7 +11,7 @@ class UpdateEventRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,29 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'required|string|max:255',
+            'event_date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
+            'slot_duration' => 'required|in:10,20,30',
+            'application_slot_duration' => 'required|in:30,60,90,120',
+            'location' => 'nullable|string|max:255',
+            'locations' => 'nullable|array|max:3',
+            'locations.*' => 'nullable|string|max:255',
+            'notes' => 'nullable|string',
+            'status' => 'required|in:draft,open,closed,completed',
+            'is_template' => 'boolean',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'slot_duration' => (int) $this->slot_duration,
+            'application_slot_duration' => (int) $this->application_slot_duration,
+        ]);
     }
 }

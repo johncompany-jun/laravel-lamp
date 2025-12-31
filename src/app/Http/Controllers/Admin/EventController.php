@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreEventRequest;
+use App\Http\Requests\Admin\UpdateEventRequest;
+use App\Http\Requests\Admin\StoreEventAssignmentsRequest;
 use App\Models\Event;
 use App\Services\EventQueryService;
 use App\UseCases\CreateEventUseCase;
 use App\UseCases\UpdateEventUseCase;
 use App\UseCases\StoreEventAssignmentsUseCase;
-use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -42,12 +44,10 @@ class EventController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreEventRequest $request)
     {
-        $validated = $this->validateEventData($request);
+        $validated = $request->validated();
         $validated['created_by'] = auth()->id();
-        $validated['slot_duration'] = (int) $validated['slot_duration'];
-        $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
 
         $this->createEventUseCase->execute($validated);
 
@@ -78,11 +78,9 @@ class EventController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Event $event)
+    public function update(UpdateEventRequest $request, Event $event)
     {
-        $validated = $this->validateEventData($request, false);
-        $validated['slot_duration'] = (int) $validated['slot_duration'];
-        $validated['application_slot_duration'] = (int) $validated['application_slot_duration'];
+        $validated = $request->validated();
 
         $this->updateEventUseCase->execute($event, $validated);
 
@@ -116,47 +114,13 @@ class EventController extends Controller
     /**
      * Store assignments for an event.
      */
-    public function storeAssignments(Request $request, Event $event)
+    public function storeAssignments(StoreEventAssignmentsRequest $request, Event $event)
     {
-        $validated = $request->validate([
-            'assignments' => 'required|array',
-            'assignments.*.slot_id' => 'required|exists:event_slots,id',
-            'assignments.*.user_id' => 'required|exists:users,id',
-            'assignments.*.role' => 'required|in:participant,leader',
-        ]);
+        $validated = $request->validated();
 
         $this->storeAssignmentsUseCase->execute($event, $validated['assignments']);
 
         return redirect()->route('admin.events.index')
             ->with('success', 'Assignments created successfully!');
-    }
-
-    /**
-     * Validate event data from request.
-     */
-    private function validateEventData(Request $request, bool $isCreate = true): array
-    {
-        $rules = [
-            'title' => 'required|string|max:255',
-            'event_date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
-            'slot_duration' => 'required|in:10,20,30',
-            'application_slot_duration' => 'required|in:30,60,90,120',
-            'location' => 'nullable|string|max:255',
-            'locations' => 'nullable|array|max:3',
-            'locations.*' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'status' => 'required|in:draft,open,closed,completed',
-            'is_template' => 'boolean',
-        ];
-
-        if ($isCreate) {
-            $rules['is_recurring'] = 'boolean';
-            $rules['recurrence_type'] = 'nullable|required_if:is_recurring,true|in:weekly';
-            $rules['recurrence_end_date'] = 'nullable|required_if:is_recurring,true|date|after:event_date';
-        }
-
-        return $request->validate($rules);
     }
 }

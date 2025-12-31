@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SubmitEventApplicationRequest;
 use App\Models\Event;
 use App\Models\EventApplication;
 use App\Services\EventApplicationService;
 use App\Services\EventQueryService;
 use App\UseCases\CancelEventApplicationUseCase;
 use App\UseCases\SubmitEventApplicationUseCase;
-use Illuminate\Http\Request;
 
 class EventController extends Controller
 {
@@ -44,16 +44,11 @@ class EventController extends Controller
     /**
      * Store a new event application.
      */
-    public function apply(Request $request, Event $event)
+    public function apply(SubmitEventApplicationRequest $request, Event $event)
     {
         $user = auth()->user();
         $slots = $request->input('slots', []);
-
-        $validated = $request->validate([
-            'can_help_setup' => 'nullable|boolean',
-            'can_help_cleanup' => 'nullable|boolean',
-            'comment' => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         try {
             $this->submitApplicationUseCase->execute(

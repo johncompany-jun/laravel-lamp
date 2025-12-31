@@ -17,18 +17,26 @@ class EventSlotGenerator
         $duration = $event->application_slot_duration;
 
         $currentTime = $startTime->copy();
+        $slots = [];
 
         while ($currentTime->lt($endTime)) {
             $slotEnd = $currentTime->copy()->addMinutes($duration);
 
             if ($slotEnd->lte($endTime)) {
-                $event->applicationSlots()->create([
+                $slots[] = [
+                    'event_id' => $event->id,
                     'start_time' => $currentTime->format('H:i:s'),
                     'end_time' => $slotEnd->format('H:i:s'),
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
 
             $currentTime->addMinutes($duration);
+        }
+
+        if (!empty($slots)) {
+            $event->applicationSlots()->insert($slots);
         }
     }
 
@@ -43,35 +51,35 @@ class EventSlotGenerator
         $locations = $event->locations ?? [];
 
         $currentTime = $startTime->copy();
+        $slots = [];
 
         while ($currentTime->lt($endTime)) {
             $slotEnd = $currentTime->copy()->addMinutes($duration);
 
             if ($slotEnd->lte($endTime)) {
-                $this->createSlotsForTimeRange($event, $currentTime, $slotEnd, $locations);
+                $slotData = [
+                    'event_id' => $event->id,
+                    'start_time' => $currentTime->format('H:i:s'),
+                    'end_time' => $slotEnd->format('H:i:s'),
+                    'capacity' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                if (!empty($locations)) {
+                    foreach ($locations as $location) {
+                        $slots[] = array_merge($slotData, ['location' => $location]);
+                    }
+                } else {
+                    $slots[] = $slotData;
+                }
             }
 
             $currentTime->addMinutes($duration);
         }
-    }
 
-    /**
-     * Create slots for a specific time range.
-     */
-    private function createSlotsForTimeRange(Event $event, Carbon $startTime, Carbon $endTime, array $locations): void
-    {
-        $slotData = [
-            'start_time' => $startTime->format('H:i:s'),
-            'end_time' => $endTime->format('H:i:s'),
-            'capacity' => 1,
-        ];
-
-        if (!empty($locations)) {
-            foreach ($locations as $location) {
-                $event->slots()->create(array_merge($slotData, ['location' => $location]));
-            }
-        } else {
-            $event->slots()->create($slotData);
+        if (!empty($slots)) {
+            $event->slots()->insert($slots);
         }
     }
 

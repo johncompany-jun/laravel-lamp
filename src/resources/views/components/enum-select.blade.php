@@ -1,10 +1,11 @@
-@props(['enum', 'selected' => null, 'name', 'id' => null, 'required' => false])
+@props(['enum', 'selected' => null, 'name', 'id' => null, 'required' => false, 'disabled' => false])
 
 <x-select-input
     :name="$name"
     :id="$id ?? $name"
     :required="$required"
-    {{ $attributes }}
+    :disabled="$disabled"
+    {{ $attributes->except(['disabled']) }}
 >
     @foreach($enum::cases() as $case)
         <option value="{{ $case->value }}" {{ $selected == $case->value ? 'selected' : '' }}>

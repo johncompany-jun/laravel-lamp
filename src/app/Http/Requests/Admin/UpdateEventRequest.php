@@ -46,9 +46,18 @@ class UpdateEventRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        $this->merge([
-            'slot_duration' => (int) $this->slot_duration,
-            'application_slot_duration' => (int) $this->application_slot_duration,
-        ]);
+        $merge = [];
+
+        if ($this->slot_duration !== null && $this->slot_duration !== '') {
+            $merge['slot_duration'] = (int) $this->slot_duration;
+        }
+
+        if ($this->application_slot_duration !== null && $this->application_slot_duration !== '') {
+            $merge['application_slot_duration'] = (int) $this->application_slot_duration;
+        }
+
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
     }
 }

@@ -109,4 +109,9 @@ return [
     'unavailable_status' => '不可',
     'comment' => 'コメント',
     'applied_at' => '申込日時',
+
+    // Edit Page
+    'note_assigned_slots' => 'このイベントには既にアサインされたタイムスロットがあります。時間とスロット時間は変更できません。',
+    'note_recurring_event' => 'これは繰り返しイベントです。変更はこのイベントのみに適用され、繰り返しインスタンスには影響しません。',
+    'update_event' => 'イベントを更新',
 ];

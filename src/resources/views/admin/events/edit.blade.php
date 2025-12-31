@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Edit Event') }}
+            {{ __('events.edit_event') }}
         </h2>
     </x-slot>
 
@@ -17,7 +17,7 @@
 
                     @if($event->slots()->whereHas('assignments')->exists())
                         <div class="mb-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-                            <strong>Note:</strong> This event has assigned time slots. Time and slot duration cannot be changed.
+                            <strong>{{ __('Note') }}:</strong> {{ __('events.note_assigned_slots') }}
                         </div>
                     @endif
 
@@ -28,17 +28,18 @@
                         <!-- Template Selection -->
                         @if($templates->count() > 0)
                         <div class="mb-6">
-                            <label for="template_id" class="block font-medium text-sm text-gray-700">Use Template (Optional)</label>
+                            <label for="template_id" class="block font-medium text-sm text-gray-700">{{ __('events.use_template') }}</label>
                             <select id="template_id" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                                <option value="">-- Select a template --</option>
+                                <option value="">{{ __('events.select_template') }}</option>
                                 @foreach($templates as $template)
                                     <option value="{{ $template->id }}"
                                         data-title="{{ $template->title }}"
                                         data-start-time="{{ $template->start_time }}"
                                         data-end-time="{{ $template->end_time }}"
-                                        data-slot-duration="{{ $template->slot_duration }}"
-                                        data-location="{{ $template->location }}"
-                                        data-notes="{{ $template->notes }}">
+                                        data-slot-duration="{{ $template->slot_duration?->value ?? '' }}"
+                                        data-application-slot-duration="{{ $template->application_slot_duration?->value ?? '' }}"
+                                        data-location="{{ $template->location ?? '' }}"
+                                        data-notes="{{ $template->notes ?? '' }}">
                                         {{ $template->title }}
                                     </option>
                                 @endforeach
@@ -46,30 +47,43 @@
                         </div>
                         @endif
 
-                        <!-- Title -->
-                        <div class="mb-4">
-                            <label for="title" class="block font-medium text-sm text-gray-700">Title</label>
-                            <input type="text" name="title" id="title" value="{{ old('title', $event->title) }}" required
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                            @error('title')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Event Date -->
-                        <div class="mb-4">
-                            <label for="event_date" class="block font-medium text-sm text-gray-700">Event Date</label>
-                            <input type="date" name="event_date" id="event_date" value="{{ old('event_date', $event->event_date->format('Y-m-d')) }}" required
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                            @error('event_date')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Time Range -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <!-- Title and Status (2-column) -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label for="start_time" class="block font-medium text-sm text-gray-700">Start Time</label>
+                                <label for="title" class="block font-medium text-sm text-gray-700">{{ __('events.title') }}</label>
+                                <input type="text" name="title" id="title" value="{{ old('title', $event->title) }}" required
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
+                                @error('title')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="status" class="block font-medium text-sm text-gray-700">{{ __('events.status') }}</label>
+                                <x-enum-select
+                                    :enum="\App\Enums\EventStatus::class"
+                                    name="status"
+                                    :selected="old('status', $event->status->value)"
+                                    required
+                                    class="mt-1 block w-full"
+                                />
+                                @error('status')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Event Date, Start Time, End Time (3-column) -->
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="event_date" class="block font-medium text-sm text-gray-700">{{ __('events.event_date') }}</label>
+                                <input type="date" name="event_date" id="event_date" value="{{ old('event_date', $event->event_date->format('Y-m-d')) }}" required
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
+                                @error('event_date')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="start_time" class="block font-medium text-sm text-gray-700">{{ __('events.start_time') }}</label>
                                 <input type="time" name="start_time" id="start_time"
                                     value="{{ old('start_time', substr($event->start_time, 0, 5)) }}"
                                     required
@@ -83,7 +97,7 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="end_time" class="block font-medium text-sm text-gray-700">End Time</label>
+                                <label for="end_time" class="block font-medium text-sm text-gray-700">{{ __('events.end_time') }}</label>
                                 <input type="time" name="end_time" id="end_time"
                                     value="{{ old('end_time', substr($event->end_time, 0, 5)) }}"
                                     required
@@ -98,78 +112,70 @@
                             </div>
                         </div>
 
-                        <!-- Slot Duration -->
-                        <div class="mb-4">
-                            <label for="slot_duration" class="block font-medium text-sm text-gray-700">Assignment Slot Duration (minutes)</label>
-                            <select name="slot_duration" id="slot_duration" required
-                                {{ $event->slots()->whereHas('assignments')->exists() ? 'disabled' : '' }}
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                                <option value="10" {{ old('slot_duration', $event->slot_duration) == 10 ? 'selected' : '' }}>10 minutes</option>
-                                <option value="20" {{ old('slot_duration', $event->slot_duration) == 20 ? 'selected' : '' }}>20 minutes</option>
-                                <option value="30" {{ old('slot_duration', $event->slot_duration) == 30 ? 'selected' : '' }}>30 minutes</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Duration for admin to assign users to time slots</p>
-                            @if($event->slots()->whereHas('assignments')->exists())
-                                <input type="hidden" name="slot_duration" value="{{ $event->slot_duration }}">
-                            @endif
-                            @error('slot_duration')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
+                        <!-- Application Slot, Assignment Slot, Location (3-column) -->
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label for="application_slot_duration" class="block font-medium text-sm text-gray-700">{{ __('events.application_slot_duration') }}</label>
+                                <x-enum-select
+                                    :enum="\App\Enums\ApplicationSlotDuration::class"
+                                    name="application_slot_duration"
+                                    :selected="old('application_slot_duration', $event->application_slot_duration->value)"
+                                    required
+                                    :disabled="$event->applicationSlots()->whereHas('applications')->exists()"
+                                    class="mt-1 block w-full"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">{{ __('events.application_slot_duration_help') }}</p>
+                                @if($event->applicationSlots()->whereHas('applications')->exists())
+                                    <input type="hidden" name="application_slot_duration" value="{{ $event->application_slot_duration->value }}">
+                                @endif
+                                @error('application_slot_duration')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="slot_duration" class="block font-medium text-sm text-gray-700">{{ __('events.assignment_slot_duration') }}</label>
+                                <x-enum-select
+                                    :enum="\App\Enums\AssignmentSlotDuration::class"
+                                    name="slot_duration"
+                                    :selected="old('slot_duration', $event->slot_duration->value)"
+                                    required
+                                    :disabled="$event->slots()->whereHas('assignments')->exists()"
+                                    class="mt-1 block w-full"
+                                />
+                                <p class="text-xs text-gray-500 mt-1">{{ __('events.assignment_slot_duration_help') }}</p>
+                                @if($event->slots()->whereHas('assignments')->exists())
+                                    <input type="hidden" name="slot_duration" value="{{ $event->slot_duration->value }}">
+                                @endif
+                                @error('slot_duration')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="location" class="block font-medium text-sm text-gray-700">{{ __('events.location') }}</label>
+                                <input type="text" name="location" id="location" value="{{ old('location', $event->location) }}"
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
+                                @error('location')
+                                    <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
 
-                        <!-- Application Slot Duration -->
+                        <!-- Multiple Locations for Assignment (3-column) -->
                         <div class="mb-4">
-                            <label for="application_slot_duration" class="block font-medium text-sm text-gray-700">Application Slot Duration (minutes)</label>
-                            <select name="application_slot_duration" id="application_slot_duration" required
-                                {{ $event->applicationSlots()->whereHas('applications')->exists() ? 'disabled' : '' }}
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                                <option value="30" {{ old('application_slot_duration', $event->application_slot_duration) == 30 ? 'selected' : '' }}>30 minutes</option>
-                                <option value="60" {{ old('application_slot_duration', $event->application_slot_duration) == 60 ? 'selected' : '' }}>1 hour</option>
-                                <option value="90" {{ old('application_slot_duration', $event->application_slot_duration) == 90 ? 'selected' : '' }}>1.5 hours</option>
-                                <option value="120" {{ old('application_slot_duration', $event->application_slot_duration) == 120 ? 'selected' : '' }}>2 hours</option>
-                            </select>
-                            <p class="text-xs text-gray-500 mt-1">Duration for users to apply for availability</p>
-                            @if($event->applicationSlots()->whereHas('applications')->exists())
-                                <input type="hidden" name="application_slot_duration" value="{{ $event->application_slot_duration }}">
-                            @endif
-                            @error('application_slot_duration')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Location -->
-                        <div class="mb-4">
-                            <label for="location" class="block font-medium text-sm text-gray-700">Location</label>
-                            <input type="text" name="location" id="location" value="{{ old('location', $event->location) }}"
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                            @error('location')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Multiple Locations -->
-                        <div class="mb-4">
-                            <label class="block font-medium text-sm text-gray-700 mb-2">Locations for Assignment (2-3 areas)</label>
-                            <div id="locationsContainer">
+                            <label class="block font-medium text-sm text-gray-700 mb-2">{{ __('events.locations_for_assignment') }}</label>
+                            <div class="grid grid-cols-3 gap-4">
                                 @php
                                     $existingLocations = old('locations', $event->locations ?? []);
-                                    // Ensure we have at least 3 input fields
                                     $locationInputs = array_pad($existingLocations, 3, '');
                                 @endphp
-                                <div class="flex gap-2 mb-2">
-                                    <input type="text" name="locations[]" placeholder="例: 北西" value="{{ $locationInputs[0] }}"
-                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
-                                </div>
-                                <div class="flex gap-2 mb-2">
-                                    <input type="text" name="locations[]" placeholder="例: 北東" value="{{ $locationInputs[1] }}"
-                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
-                                </div>
-                                <div class="flex gap-2 mb-2">
-                                    <input type="text" name="locations[]" placeholder="例: 南側 (optional)" value="{{ $locationInputs[2] }}"
-                                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
-                                </div>
+                                <input type="text" name="locations[]" placeholder="例: 北西" value="{{ $locationInputs[0] }}"
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                                <input type="text" name="locations[]" placeholder="例: 北東" value="{{ $locationInputs[1] }}"
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
+                                <input type="text" name="locations[]" placeholder="例: 南側 (任意)" value="{{ $locationInputs[2] }}"
+                                    class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block w-full">
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">Enter 2-3 location names for this event (e.g., 北西, 北東)</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ __('events.locations_help') }}</p>
                             @error('locations')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
@@ -177,25 +183,10 @@
 
                         <!-- Notes -->
                         <div class="mb-4">
-                            <label for="notes" class="block font-medium text-sm text-gray-700">Notes</label>
+                            <label for="notes" class="block font-medium text-sm text-gray-700">{{ __('events.notes') }}</label>
                             <textarea name="notes" id="notes" rows="4"
                                 class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">{{ old('notes', $event->notes) }}</textarea>
                             @error('notes')
-                                <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Status -->
-                        <div class="mb-4">
-                            <label for="status" class="block font-medium text-sm text-gray-700">Status</label>
-                            <select name="status" id="status" required
-                                class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
-                                <option value="draft" {{ old('status', $event->status) == 'draft' ? 'selected' : '' }}>Draft</option>
-                                <option value="open" {{ old('status', $event->status) == 'open' ? 'selected' : '' }}>Open for Applications</option>
-                                <option value="closed" {{ old('status', $event->status) == 'closed' ? 'selected' : '' }}>Closed</option>
-                                <option value="completed" {{ old('status', $event->status) == 'completed' ? 'selected' : '' }}>Completed</option>
-                            </select>
-                            @error('status')
                                 <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
@@ -205,22 +196,22 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="is_template" value="1" {{ old('is_template', $event->is_template) ? 'checked' : '' }}
                                     class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                <span class="ml-2 text-sm text-gray-700">Save as template for future use</span>
+                                <span class="ml-2 text-sm text-gray-700">{{ __('events.save_as_template') }}</span>
                             </label>
                         </div>
 
                         @if($event->is_recurring)
                         <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
                             <p class="text-sm text-blue-800">
-                                <strong>Note:</strong> This is a recurring event. Changes will only affect this event, not the recurring instances.
+                                <strong>{{ __('Note') }}:</strong> {{ __('events.note_recurring_event') }}
                             </p>
                         </div>
                         @endif
 
                         <div class="flex items-center justify-end gap-4">
-                            <a href="{{ route('admin.events.show', $event) }}" class="text-sm text-gray-600 hover:text-gray-900">Cancel</a>
+                            <a href="{{ route('admin.events.show', $event) }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('events.cancel') }}</a>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                                Update Event
+                                {{ __('events.update_event') }}
                             </button>
                         </div>
                     </form>
@@ -239,7 +230,8 @@
                 // Only update time fields if they're not disabled
                 const startTimeField = document.getElementById('start_time');
                 const endTimeField = document.getElementById('end_time');
-                const slotDurationField = document.getElementById('slot_duration');
+                const slotDurationField = document.querySelector('select[name="slot_duration"]');
+                const applicationSlotDurationField = document.querySelector('select[name="application_slot_duration"]');
 
                 if (!startTimeField.disabled) {
                     startTimeField.value = option.dataset.startTime?.substring(0, 5) || '';
@@ -249,6 +241,9 @@
                 }
                 if (!slotDurationField.disabled) {
                     slotDurationField.value = option.dataset.slotDuration || '';
+                }
+                if (!applicationSlotDurationField.disabled) {
+                    applicationSlotDurationField.value = option.dataset.applicationSlotDuration || '';
                 }
 
                 document.getElementById('location').value = option.dataset.location || '';

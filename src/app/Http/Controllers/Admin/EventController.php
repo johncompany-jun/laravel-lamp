@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SearchEventsRequest;
 use App\Http\Requests\Admin\StoreEventRequest;
 use App\Http\Requests\Admin\UpdateEventRequest;
 use App\Http\Requests\Admin\StoreEventAssignmentsRequest;
@@ -24,11 +25,12 @@ class EventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(SearchEventsRequest $request)
     {
-        $events = $this->queryService->getParentEvents();
+        $filters = $request->validated();
+        $events = $this->queryService->getParentEvents(20, $filters);
 
-        return view('admin.events.index', compact('events'));
+        return view('admin.events.index', compact('events', 'filters'));
     }
 
     /**

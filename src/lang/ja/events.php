@@ -59,4 +59,12 @@ return [
     'edit_event_btn' => 'イベントを編集',
     'assign_users_btn' => 'ユーザーをアサイン',
     'delete_event' => 'イベントを削除',
+
+    // Search
+    'search' => '検索',
+    'search_events' => 'イベントを検索',
+    'location' => '場所',
+    'event_date' => 'イベント日',
+    'clear_filters' => 'フィルタをクリア',
+    'all_statuses' => 'すべてのステータス',
 ];

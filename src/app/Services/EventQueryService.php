@@ -24,12 +24,28 @@ class EventQueryService
     /**
      * Get all parent events for admin.
      */
-    public function getParentEvents(int $perPage = 20): LengthAwarePaginator
+    public function getParentEvents(int $perPage = 20, array $filters = []): LengthAwarePaginator
     {
-        return Event::with('creator')
-            ->whereNull('parent_event_id')
-            ->latest('event_date')
-            ->paginate($perPage);
+        $query = Event::with('creator')
+            ->whereNull('parent_event_id');
+
+        // Apply filters
+        if (!empty($filters['location'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('location', 'like', '%' . $filters['location'] . '%')
+                  ->orWhereJsonContains('locations', $filters['location']);
+            });
+        }
+
+        if (!empty($filters['event_date'])) {
+            $query->whereDate('event_date', $filters['event_date']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest('event_date')->paginate($perPage);
     }
 
     /**

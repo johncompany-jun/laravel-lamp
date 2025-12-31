@@ -23,6 +23,70 @@
                 </div>
             @endif
 
+            <!-- Search Form -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6">
+                    <form method="GET" action="{{ route('admin.events.index') }}">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div>
+                                <label for="location" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">
+                                    {{ __('events.location') }}
+                                </label>
+                                <input type="text"
+                                       name="location"
+                                       id="location"
+                                       value="{{ $filters['location'] ?? '' }}"
+                                       placeholder="{{ __('events.location') }}"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+
+                            <div>
+                                <label for="event_date" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">
+                                    {{ __('events.event_date') }}
+                                </label>
+                                <input type="date"
+                                       name="event_date"
+                                       id="event_date"
+                                       value="{{ $filters['event_date'] ?? '' }}"
+                                       style="width: 100%; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                            </div>
+
+                            <div>
+                                <label for="status" style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">
+                                    {{ __('events.status') }}
+                                </label>
+                                <select name="status"
+                                        id="status"
+                                        style="width: 100%; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px;">
+                                    <option value="">{{ __('events.all_statuses') }}</option>
+                                    <option value="draft" {{ ($filters['status'] ?? '') === 'draft' ? 'selected' : '' }}>{{ __('events.draft') }}</option>
+                                    <option value="open" {{ ($filters['status'] ?? '') === 'open' ? 'selected' : '' }}>{{ __('events.open') }}</option>
+                                    <option value="closed" {{ ($filters['status'] ?? '') === 'closed' ? 'selected' : '' }}>{{ __('events.closed') }}</option>
+                                    <option value="completed" {{ ($filters['status'] ?? '') === 'completed' ? 'selected' : '' }}>{{ __('events.completed') }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-top: 16px;">
+                            <button type="submit"
+                                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: #4F46E5; color: white; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+                                    onmouseover="this.style.backgroundColor='#4338CA'"
+                                    onmouseout="this.style.backgroundColor='#4F46E5'">
+                                <span class="material-icons" style="font-size: 18px;">search</span>
+                                {{ __('events.search') }}
+                            </button>
+                            <a href="{{ route('admin.events.index') }}"
+                               style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background-color: #E5E7EB; color: #374151; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+                               onmouseover="this.style.backgroundColor='#D1D5DB'"
+                               onmouseout="this.style.backgroundColor='#E5E7EB'">
+                                <span class="material-icons" style="font-size: 18px;">clear</span>
+                                {{ __('events.clear_filters') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     @if($events->count() > 0)

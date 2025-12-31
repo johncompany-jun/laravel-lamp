@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\EventStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEventRequest extends FormRequest
 {
@@ -32,7 +34,7 @@ class StoreEventRequest extends FormRequest
             'locations' => 'nullable|array|max:3',
             'locations.*' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'status' => 'required|in:draft,open,closed,completed',
+            'status' => ['required', Rule::enum(EventStatus::class)],
             'is_recurring' => 'boolean',
             'recurrence_type' => 'nullable|required_if:is_recurring,true|in:weekly',
             'recurrence_end_date' => 'nullable|required_if:is_recurring,true|date|after:event_date',

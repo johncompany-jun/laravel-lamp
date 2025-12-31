@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\EventStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventRequest extends FormRequest
 {
@@ -32,7 +34,7 @@ class UpdateEventRequest extends FormRequest
             'locations' => 'nullable|array|max:3',
             'locations.*' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'status' => 'required|in:draft,open,closed,completed',
+            'status' => ['required', Rule::enum(EventStatus::class)],
             'is_template' => 'boolean',
         ];
     }

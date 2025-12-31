@@ -14,7 +14,7 @@ class EventSlotGenerator
     {
         $startTime = Carbon::parse($event->start_time);
         $endTime = Carbon::parse($event->end_time);
-        $duration = $event->application_slot_duration;
+        $duration = $event->application_slot_duration->value;
 
         $currentTime = $startTime->copy();
         $slots = [];
@@ -47,7 +47,7 @@ class EventSlotGenerator
     {
         $startTime = Carbon::parse($event->start_time);
         $endTime = Carbon::parse($event->end_time);
-        $duration = $event->slot_duration;
+        $duration = $event->slot_duration->value;
         $locations = $event->locations ?? [];
 
         $currentTime = $startTime->copy();

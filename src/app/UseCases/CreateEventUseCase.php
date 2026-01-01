@@ -2,6 +2,7 @@
 
 namespace App\UseCases;
 
+use App\Domain\Event\Repositories\EventRepositoryInterface;
 use App\Models\Event;
 use App\Services\EventSlotGenerator;
 use App\Services\RecurringEventService;
@@ -9,6 +10,7 @@ use App\Services\RecurringEventService;
 class CreateEventUseCase
 {
     public function __construct(
+        private EventRepositoryInterface $eventRepository,
         private EventSlotGenerator $slotGenerator,
         private RecurringEventService $recurringEventService
     ) {}
@@ -24,7 +26,8 @@ class CreateEventUseCase
         }
 
         // Create the main event
-        $event = Event::create($data);
+        $event = new Event($data);
+        $event = $this->eventRepository->save($event);
 
         // Generate application slots based on application_slot_duration
         $this->slotGenerator->generateApplicationSlots($event);

@@ -2,12 +2,14 @@
 
 namespace App\UseCases;
 
+use App\Domain\Event\Repositories\EventRepositoryInterface;
 use App\Models\Event;
 use App\Services\EventSlotGenerator;
 
 class UpdateEventUseCase
 {
     public function __construct(
+        private EventRepositoryInterface $eventRepository,
         private EventSlotGenerator $slotGenerator
     ) {}
 
@@ -26,7 +28,8 @@ class UpdateEventUseCase
         $needsTimeSlotRegeneration = $this->slotGenerator->needsTimeSlotRegeneration($event, $data);
 
         // Update the event
-        $event->update($data);
+        $event->fill($data);
+        $event = $this->eventRepository->save($event);
 
         // Regenerate application slots if needed and safe
         if ($needsApplicationSlotRegeneration) {

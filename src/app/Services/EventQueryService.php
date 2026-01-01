@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Domain\Event\Repositories\EventRepositoryInterface;
 use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventAssignment;
@@ -10,16 +11,16 @@ use Illuminate\Database\Eloquent\Collection;
 
 class EventQueryService
 {
+    public function __construct(
+        private EventRepositoryInterface $eventRepository
+    ) {}
+
     /**
      * Get open events for public display.
      */
     public function getOpenEvents(int $perPage = 10): LengthAwarePaginator
     {
-        return Event::where('status', EventStatus::OPEN)
-            ->whereNull('parent_event_id')
-            ->where('event_date', '>=', today())
-            ->orderBy('event_date')
-            ->paginate($perPage);
+        return $this->eventRepository->getOpenEvents($perPage);
     }
 
     /**
@@ -54,7 +55,7 @@ class EventQueryService
      */
     public function getEventWithApplicationSlots(Event $event): Event
     {
-        return $event->load(['applicationSlots.applications']);
+        return $this->eventRepository->findWithApplicationSlots($event);
     }
 
     /**
@@ -62,7 +63,8 @@ class EventQueryService
      */
     public function getEventWithFullDetails(Event $event): Event
     {
-        return $event->load(['slots.assignments.user', 'applications.user', 'childEvents']);
+        // Load child events separately (not in repository interface)
+        return $this->eventRepository->findWithFullDetails($event)->load('childEvents');
     }
 
     /**
@@ -70,12 +72,7 @@ class EventQueryService
      */
     public function getEventWithSlotsAndApplications(Event $event): Event
     {
-        return $event->load([
-            'slots',
-            'applicationSlots.applications' => function ($query) {
-                $query->with('user');
-            }
-        ]);
+        return $this->eventRepository->findWithSlotsAndApplications($event);
     }
 
     /**
@@ -83,13 +80,7 @@ class EventQueryService
      */
     public function getTemplateEvents(?int $excludeId = null): Collection
     {
-        $query = Event::where('is_template', true)->orderBy('title');
-
-        if ($excludeId !== null) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        return $query->get();
+        return $this->eventRepository->getTemplateEvents($excludeId);
     }
 
     /**

@@ -20,7 +20,7 @@ return [
     // Status
     'draft' => '下書き',
     'open' => '募集中',
-    'closed' => '終了',
+    'closed' => '募集終了',
     'completed' => '完了',
 
     // Tags

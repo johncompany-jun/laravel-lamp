@@ -86,7 +86,7 @@
                         @if($event->notes)
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700">{{ __('events.notes') }}</label>
-                            <p class="mt-1 text-sm text-gray-900 whitespace-pre-wrap">{{ $event->notes }}</p>
+                            <p class="mt-1 text-sm text-gray-900 whitespace-pre-line">{{ $event->notes }}</p>
                         </div>
                         @endif
                     </div>
@@ -163,6 +163,7 @@
                                                 <span class="text-gray-400">{{ date('H:i', strtotime($slot->end_time)) }}</span>
                                             </th>
                                         @endforeach
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.comment') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.applied_at') }}</th>
                                     </tr>
                                 </thead>
@@ -195,6 +196,13 @@
                                                     @endif
                                                 </td>
                                             @endforeach
+                                            <td class="px-6 py-4 text-sm text-gray-500" style="max-width: 300px;">
+                                                @if($firstApp->comment)
+                                                    <div class="whitespace-pre-line">{{ $firstApp->comment }}</div>
+                                                @else
+                                                    <span class="text-gray-300">-</span>
+                                                @endif
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $firstApp->created_at->format('Y-m-d H:i') }}
                                             </td>

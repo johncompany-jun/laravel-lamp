@@ -54,7 +54,7 @@
                     @if($event->notes)
                     <div class="mt-4">
                         <p class="text-sm text-gray-600 font-medium">{{ __('events.notes') }}</p>
-                        <p class="text-gray-900 mt-1">{{ $event->notes }}</p>
+                        <p class="text-gray-900 mt-1 whitespace-pre-line">{{ $event->notes }}</p>
                     </div>
                     @endif
                 </div>
@@ -70,6 +70,17 @@
                             <p class="text-sm text-blue-800 mb-2">
                                 <strong>{{ __('events.already_applied') }}</strong> {{ __('events.can_update_application') }}
                             </p>
+
+                            @php
+                                $firstApp = $existingApplications->first();
+                            @endphp
+
+                            @if($firstApp && $firstApp->comment)
+                                <div class="mt-3 pt-3 border-t border-blue-300">
+                                    <p class="text-xs text-blue-700 font-medium mb-1">{{ __('events.comment') }}:</p>
+                                    <div class="text-sm text-blue-900 whitespace-pre-line bg-white p-2 rounded">{{ $firstApp->comment }}</div>
+                                </div>
+                            @endif
                         </div>
                     @endif
 

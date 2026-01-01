@@ -17,75 +17,74 @@
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.event') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">{{ __('dashboard.event') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.date') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.time_slot') }}</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.availability') }}</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.help') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.applied') }}</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.action') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($myApplications as $application)
+                                    @foreach($myApplications as $applicationGroup)
+                                        @php
+                                            $event = $applicationGroup['event'];
+                                            $applications = $applicationGroup['applications'];
+                                            $appliedAt = $applicationGroup['applied_at'];
+                                            $applicationSlots = $event->applicationSlots->sortBy('start_time');
+                                            // カート運搬サポートの情報を取得（全申込から最初のものを使用）
+                                            $firstApp = $applications->first();
+                                            $canHelpSetup = $firstApp->can_help_setup ?? false;
+                                            $canHelpCleanup = $firstApp->can_help_cleanup ?? false;
+                                        @endphp
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                <a href="{{ route('events.show', $application->event) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
-                                                    {{ $application->event->title }}
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
+                                                <a href="{{ route('events.show', $event) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
+                                                    {{ $event->title }}
                                                 </a>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $application->event->event_date->format('Y-m-d') }}
+                                                {{ $event->event_date->format('Y-m-d') }}
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                @if($application->applicationSlot)
-                                                    {{ date('H:i', strtotime($application->applicationSlot->start_time)) }} - {{ date('H:i', strtotime($application->applicationSlot->end_time)) }}
-                                                @else
-                                                    {{ __('dashboard.n_a') }}
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                @if($application->availability === 'available')
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                        {{ __('dashboard.available') }}
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                        {{ __('dashboard.unavailable') }}
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                @if($application->can_help_setup || $application->can_help_cleanup)
-                                                    <div class="space-y-1">
-                                                        @if($application->can_help_setup)
+                                            <td class="px-6 py-4 text-sm text-gray-500">
+                                                <div class="flex flex-wrap gap-2 mb-2">
+                                                    @foreach($applicationSlots as $slot)
+                                                        @php
+                                                            $app = $applications->get($slot->id);
+                                                        @endphp
+                                                        @if($app)
+                                                            <div class="whitespace-nowrap">
+                                                                <div class="text-xs text-gray-600 mb-1">
+                                                                    {{ date('H:i', strtotime($slot->start_time)) }}-{{ date('H:i', strtotime($slot->end_time)) }}
+                                                                </div>
+                                                                @if($app->availability === 'available')
+                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                        {{ __('dashboard.available') }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                                        {{ __('dashboard.unavailable') }}
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                                @if($canHelpSetup || $canHelpCleanup)
+                                                    <div class="flex flex-wrap gap-1 mt-2">
+                                                        @if($canHelpSetup)
                                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                                 {{ __('dashboard.setup') }}
                                                             </span>
                                                         @endif
-                                                        @if($application->can_help_cleanup)
+                                                        @if($canHelpCleanup)
                                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                                 {{ __('dashboard.cleanup') }}
                                                             </span>
                                                         @endif
                                                     </div>
-                                                @else
-                                                    -
                                                 @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $application->created_at->format('Y-m-d') }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <form method="POST" action="{{ route('applications.cancel', $application) }}" onsubmit="return confirm('{{ __('dashboard.cancel_confirm') }}');" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-900" title="{{ __('dashboard.cancel') }}">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                                        </svg>
-                                                    </button>
-                                                </form>
+                                                {{ $appliedAt->format('Y-m-d') }}
                                             </td>
                                         </tr>
                                     @endforeach

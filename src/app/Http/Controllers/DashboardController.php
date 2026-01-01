@@ -21,12 +21,20 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // Get user's applications
+        // Get user's applications grouped by event
         $myApplications = EventApplication::where('user_id', $user->id)
-            ->with(['event', 'applicationSlot'])
+            ->with(['event.applicationSlots', 'applicationSlot'])
             ->latest()
-            ->limit(5)
-            ->get();
+            ->get()
+            ->groupBy('event_id')
+            ->map(function ($applications) {
+                return [
+                    'event' => $applications->first()->event,
+                    'applications' => $applications->keyBy('event_application_slot_id'),
+                    'applied_at' => $applications->first()->created_at,
+                ];
+            })
+            ->take(5);
 
         // Get user's assignments (confirmed schedules)
         $myAssignments = EventAssignment::where('user_id', $user->id)

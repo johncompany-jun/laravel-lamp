@@ -5,6 +5,9 @@
                 {{ __('events.event_details') }}
             </h2>
             <div class="flex gap-3">
+                <a href="{{ route('admin.events.assignments.create', $event) }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                    {{ __('events.create_assignments') }}
+                </a>
                 <a href="{{ route('admin.events.edit', $event) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                     {{ __('events.edit_event_btn') }}
                 </a>
@@ -139,41 +142,61 @@
             <!-- Applications -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold mb-4">{{ __('events.applications') }} ({{ $event->applications->count() }})</h3>
+                    @php
+                        // ユーザーごとに申込をグループ化
+                        $applicationsByUser = $event->applications->groupBy('user_id');
+                        // 申込スロットの時間帯を取得してソート
+                        $applicationSlots = $event->applicationSlots->sortBy('start_time');
+                    @endphp
 
-                    @if($event->applications->count() > 0)
+                    <h3 class="text-lg font-semibold mb-4">{{ __('events.applications') }} ({{ $applicationsByUser->count() }}人)</h3>
+
+                    @if($applicationsByUser->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.user') }}</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.availability') }}</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.comment') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">{{ __('events.user') }}</th>
+                                        @foreach($applicationSlots as $slot)
+                                            <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                                {{ date('H:i', strtotime($slot->start_time)) }}<br>
+                                                <span class="text-gray-400">{{ date('H:i', strtotime($slot->end_time)) }}</span>
+                                            </th>
+                                        @endforeach
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('events.applied_at') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    @foreach($event->applications as $application)
+                                    @foreach($applicationsByUser as $userId => $userApplications)
+                                        @php
+                                            $firstApp = $userApplications->first();
+                                            // スロットIDをキーにした配列を作成
+                                            $appsBySlot = $userApplications->keyBy('event_application_slot_id');
+                                        @endphp
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {{ $application->user->name }}
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
+                                                {{ $firstApp->user->name }}
                                             </td>
+                                            @foreach($applicationSlots as $slot)
+                                                <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
+                                                    @if($appsBySlot->has($slot->id))
+                                                        @php $app = $appsBySlot->get($slot->id); @endphp
+                                                        @if($app->availability === 'available')
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                {{ __('events.available_status') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                                {{ __('events.unavailable_status') }}
+                                                            </span>
+                                                        @endif
+                                                    @else
+                                                        <span class="text-gray-300">-</span>
+                                                    @endif
+                                                </td>
+                                            @endforeach
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                @if($application->availability === 'available')
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                        {{ __('events.available_status') }}
-                                                    </span>
-                                                @else
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                        {{ __('events.unavailable_status') }}
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="px-6 py-4 text-sm text-gray-500">
-                                                {{ $application->comment ?? __('events.not_set') }}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $application->created_at->format('Y-m-d H:i') }}
+                                                {{ $firstApp->created_at->format('Y-m-d H:i') }}
                                             </td>
                                         </tr>
                                     @endforeach

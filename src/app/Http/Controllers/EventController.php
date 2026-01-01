@@ -35,13 +35,30 @@ class EventController extends Controller
      */
     public function show(Event $event)
     {
-        // Only allow users to view open events
-        if ($event->status !== EventStatus::OPEN) {
+        $user = auth()->user();
+
+        // Do not allow viewing completed events
+        if ($event->status === EventStatus::COMPLETED) {
+            abort(404);
+        }
+
+        // Allow viewing if:
+        // 1. Event is open, OR
+        // 2. User has applied to this event, OR
+        // 3. User has been assigned to this event
+        $hasApplied = EventApplication::where('event_id', $event->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        $hasAssignment = \App\Models\EventAssignment::where('event_id', $event->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if ($event->status !== EventStatus::OPEN && !$hasApplied && !$hasAssignment) {
             abort(404);
         }
 
         $event = $this->queryService->getEventWithApplicationSlots($event);
-        $user = auth()->user();
         $existingApplications = $this->applicationService->getUserApplications($user, $event);
 
         return view('events.show', compact('event', 'existingApplications'));
@@ -91,5 +108,47 @@ class EventController extends Controller
             return redirect()->route('dashboard')
                 ->with('error', 'Unauthorized action.');
         }
+    }
+
+    /**
+     * View event assignments (read-only).
+     */
+    public function viewAssignments(Event $event)
+    {
+        $user = auth()->user();
+
+        // Only allow viewing if user has been assigned to this event
+        $hasAssignment = \App\Models\EventAssignment::where('event_id', $event->id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$hasAssignment) {
+            abort(403, 'You do not have permission to view this event\'s assignments.');
+        }
+
+        // Load event with slots and assignments
+        $event->load(['slots.assignments.user']);
+
+        // Get existing assignments grouped by slot
+        $existingAssignments = \App\Models\EventAssignment::where('event_id', $event->id)
+            ->with('user')
+            ->get();
+
+        // Build slot matrix for display
+        $locations = $event->locations ?? [];
+        $slotMatrix = [];
+
+        foreach ($event->slots as $slot) {
+            $timeKey = date('H:i', strtotime($slot->start_time)) . '-' . date('H:i', strtotime($slot->end_time));
+            $locationKey = $slot->location ?? 'default';
+
+            if (!isset($slotMatrix[$timeKey])) {
+                $slotMatrix[$timeKey] = [];
+            }
+
+            $slotMatrix[$timeKey][$locationKey] = $slot;
+        }
+
+        return view('events.assignments.view', compact('event', 'slotMatrix', 'locations', 'existingAssignments'));
     }
 }

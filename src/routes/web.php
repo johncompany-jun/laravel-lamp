@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
     Route::post('/events/{event}/apply', [EventController::class, 'apply'])->name('events.apply');
     Route::delete('/applications/{application}', [EventController::class, 'cancelApplication'])->name('applications.cancel');
+    Route::get('/events/{event}/assignments', [EventController::class, 'viewAssignments'])->name('events.assignments.view');
 });
 
 // Admin Routes

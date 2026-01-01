@@ -34,6 +34,9 @@ class DashboardController extends Controller
                     'applied_at' => $applications->first()->created_at,
                 ];
             })
+            ->sortByDesc(function ($item) {
+                return $item['event']->event_date;
+            })
             ->take(5);
 
         // Get user's assignments (confirmed schedules)

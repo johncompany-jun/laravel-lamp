@@ -45,9 +45,9 @@ return [
     // Assignment
     'assign_users' => 'ユーザーをアサイン',
     'participants' => '参加者',
-    'leader' => 'リーダー',
+    'leader' => '見守り',
     'select_participants' => '参加者を選択 (2名)',
-    'select_leader' => 'リーダーを選択 (任意、1名)',
+    'select_leader' => '見守りを選択 (任意、1名)',
     'click_to_assign' => 'クリックしてアサイン',
     'assignments_created' => '件のアサインを作成',
     'none' => 'なし',
@@ -120,10 +120,10 @@ return [
     'back_to_events' => '← イベント一覧に戻る',
     'event_details' => 'イベント詳細',
     'assign_users_to_slots' => 'タイムスロット × 場所にユーザーをアサイン',
-    'assignment_instruction' => 'セルをクリックしてユーザーを選択してください。各場所は通常、参加者2名 + リーダー1名（任意）が必要です。',
+    'assignment_instruction' => 'セルをクリックしてユーザーを選択してください。各場所は通常、参加者2名 + 見守り1名が必要です。',
     'time' => '時間',
     'assignments' => 'アサイン',
-    'participants_and_leader' => '参加者 (2) + リーダー (1)',
+    'participants_and_leader' => '参加者 (2) + 見守り (1)',
     'click_to_assign' => 'クリックしてアサイン',
     'no_slot' => 'スロットなし',
     'no_slot_found' => 'スロットが見つかりません。イベントを編集してスロットを再生成してください。',
@@ -131,7 +131,7 @@ return [
     'assignments_created' => '件のアサインを作成',
     'assign_users_modal_title' => 'ユーザーをアサイン',
     'select_participants_2' => '参加者を選択 (2名)',
-    'select_leader_optional' => 'リーダーを選択 (任意、1名)',
+    'select_leader_optional' => '見守りを選択 (任意、1名)',
     'invalid_slot' => '無効なスロット - このセルのスロットIDが見つかりません',
 
     // User Event Pages

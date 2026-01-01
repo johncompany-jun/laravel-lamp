@@ -4,8 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('events.create_assignments_title') }}: {{ $event->title }}
             </h2>
-            <a href="{{ route('admin.events.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                {{ __('events.back_to_events') }}
+            <a href="{{ route('admin.events.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                {{ __('events.back_to_list') }}
             </a>
         </div>
     </x-slot>
@@ -24,11 +24,21 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    <ul class="list-disc list-inside">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <!-- Event Information -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-semibold mb-4">{{ __('events.event_details') }}</h3>
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-4 gap-4">
                         <div>
                             <p class="text-sm text-gray-600">{{ __('events.date') }}</p>
                             <p class="font-medium">{{ $event->event_date->format('Y-m-d (D)') }}</p>
@@ -36,6 +46,10 @@
                         <div>
                             <p class="text-sm text-gray-600">{{ __('events.time') }}</p>
                             <p class="font-medium">{{ date('H:i', strtotime($event->start_time)) }} - {{ date('H:i', strtotime($event->end_time)) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">{{ __('events.location') }}</p>
+                            <p class="font-medium">{{ $event->location ?? __('events.not_set') }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-600">{{ __('events.locations') }}</p>
@@ -78,7 +92,6 @@
                                 return [
                                     'id' => $userId,
                                     'name' => $userApps->first()->user->name,
-                                    'applications' => $userApps,
                                 ];
                             })->values();
                         @endphp
@@ -174,7 +187,10 @@
                         </div>
 
                         <!-- Hidden inputs for assignments -->
-                        <div id="assignmentInputs"></div>
+                        <div id="assignmentInputs">
+                            <!-- This ensures assignments array is always sent, even if empty -->
+                            <input type="hidden" name="assignments" value="">
+                        </div>
                     </form>
                 </div>
             </div>
@@ -185,9 +201,14 @@
     <div id="assignmentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50" style="display: none;" onclick="event.target === this && closeAssignmentModal()">
         <div class="relative mx-auto border shadow-lg rounded-md bg-white" style="margin-top: 80px; margin-bottom: 80px; max-height: calc(100vh - 160px); overflow-y: auto; width: 600px; max-width: 90%; padding: 32px;">
             <div>
-                <h3 style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 24px;">
+                <h3 style="font-size: 20px; font-weight: 600; color: #111827; margin-bottom: 16px;">
                     {{ __('events.assign_users_modal_title') }} - <span id="modalTitle"></span>
                 </h3>
+
+                <!-- Capacity indicator -->
+                <div id="capacityIndicator" style="margin-bottom: 16px; padding: 12px; border-radius: 6px; font-size: 14px;">
+                    <!-- Capacity info will be inserted here -->
+                </div>
 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">{{ __('events.select_participants_2') }}</label>
@@ -216,24 +237,44 @@
     </div>
 
     <script>
+        console.log('Script loaded');
+
         // Store assignments: { slotId: { participants: [userId1, userId2], leader: userId3 } }
         const assignments = new Map();
         let currentSlotId = null;
         let currentCell = null;
+        let currentSlotCapacity = null;
 
         // Available users data
         const availableUsers = @json($availableUsers);
+        console.log('Available users:', availableUsers);
+
+        // Slots data with capacity
+        const slotsData = new Map();
+        @foreach($event->slots as $slot)
+            slotsData.set('{{ $slot->id }}', {
+                id: '{{ $slot->id }}',
+                capacity: {{ $slot->capacity }},
+                startTime: '{{ date('H:i', strtotime($slot->start_time)) }}',
+                endTime: '{{ date('H:i', strtotime($slot->end_time)) }}',
+                location: '{{ $slot->location }}'
+            });
+        @endforeach
 
         // Load existing assignments
         @foreach($existingAssignments as $assignment)
-            const slotId{{ $assignment->event_slot_id }} = '{{ $assignment->event_slot_id }}';
-            if (!assignments.has(slotId{{ $assignment->event_slot_id }})) {
-                assignments.set(slotId{{ $assignment->event_slot_id }}, { participants: [], leader: null });
+            @php
+                $slotId = $assignment->event_slot_id;
+                $userId = $assignment->user_id;
+                $role = $assignment->role;
+            @endphp
+            if (!assignments.has('{{ $slotId }}')) {
+                assignments.set('{{ $slotId }}', { participants: [], leader: null });
             }
-            if ('{{ $assignment->role }}' === 'leader') {
-                assignments.get(slotId{{ $assignment->event_slot_id }}).leader = {{ $assignment->user_id }};
+            if ('{{ $role }}' === 'leader') {
+                assignments.get('{{ $slotId }}').leader = {{ $userId }};
             } else {
-                assignments.get(slotId{{ $assignment->event_slot_id }}).participants.push({{ $assignment->user_id }});
+                assignments.get('{{ $slotId }}').participants.push({{ $userId }});
             }
         @endforeach
 
@@ -242,7 +283,37 @@
             updateCellDisplay(slotId);
         });
 
+        // 指定した時間帯に他の場所でアサインされているユーザーを取得
+        function getUsersAssignedAtTime(timeKey, excludeSlotId) {
+            const usersAssigned = new Map(); // userId -> location
+
+            assignments.forEach((assignment, slotId) => {
+                if (slotId === excludeSlotId) return; // 現在編集中のスロットは除外
+
+                const slot = slotsData.get(slotId);
+                if (!slot) return;
+
+                const slotTimeKey = slot.startTime + '-' + slot.endTime;
+                if (slotTimeKey !== timeKey) return; // 違う時間帯はスキップ
+
+                // 参加者を追加
+                assignment.participants.forEach(userId => {
+                    usersAssigned.set(userId, slot.location);
+                });
+
+                // 見守りを追加
+                if (assignment.leader) {
+                    usersAssigned.set(assignment.leader, slot.location);
+                }
+            });
+
+            return usersAssigned;
+        }
+
         function openAssignmentModal(cell) {
+            console.log('openAssignmentModal called');
+            console.log('cell:', cell);
+
             currentCell = cell;
             currentSlotId = cell.dataset.slotId;
             const time = cell.dataset.time;
@@ -258,25 +329,59 @@
                 return;
             }
 
+            // Get slot data
+            const slotData = slotsData.get(currentSlotId);
+            currentSlotCapacity = slotData ? slotData.capacity : 0;
+            const currentTimeKey = slotData.startTime + '-' + slotData.endTime;
+
             document.getElementById('modalTitle').textContent = `${time} - ${location}`;
 
             // Get current assignments for this slot
             const currentAssignment = assignments.get(currentSlotId) || { participants: [], leader: null };
 
+            // 同じ時間帯の他の場所にアサインされているユーザーを取得
+            const usersAssignedAtSameTime = getUsersAssignedAtTime(currentTimeKey, currentSlotId);
+
+            // Update capacity indicator
+            updateCapacityIndicator(currentAssignment);
+
             // Populate participants list
             const participantsList = document.getElementById('participantsList');
             participantsList.innerHTML = '';
             availableUsers.forEach(user => {
+                const isAssignedElsewhere = usersAssignedAtSameTime.has(user.id);
+                const isCurrentlyAssigned = currentAssignment.participants.includes(user.id);
+                const isDisabled = isAssignedElsewhere && !isCurrentlyAssigned;
+
                 const div = document.createElement('div');
                 div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
+
+                let labelStyle = 'cursor: pointer; flex: 1;';
+                let warningText = '';
+
+                if (isDisabled) {
+                    labelStyle += ' color: #9CA3AF;';
+                    const assignedLocation = usersAssignedAtSameTime.get(user.id);
+                    warningText = ` <span style="font-size: 11px; color: #EF4444;">(${assignedLocation}にアサイン済み)</span>`;
+                }
+
                 div.innerHTML = `
                     <input type="checkbox" id="participant-${user.id}" value="${user.id}"
-                        ${currentAssignment.participants.includes(user.id) ? 'checked' : ''}
+                        ${isCurrentlyAssigned ? 'checked' : ''}
+                        ${isDisabled ? 'disabled' : ''}
                         class="participant-checkbox"
-                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                    <label for="participant-${user.id}" style="cursor: pointer; flex: 1;">${user.name}</label>
+                        style="margin-right: 8px; width: 16px; height: 16px; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
+                    <label for="participant-${user.id}" style="${labelStyle}">${user.name}${warningText}</label>
                 `;
                 participantsList.appendChild(div);
+            });
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.participant-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const tempAssignment = getCurrentModalAssignment();
+                    updateCapacityIndicator(tempAssignment);
+                });
             });
 
             // Populate leaders list
@@ -289,6 +394,7 @@
             noneDiv.innerHTML = `
                 <input type="radio" name="leader" value="" id="leader-none"
                     ${!currentAssignment.leader ? 'checked' : ''}
+                    class="leader-radio"
                     style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
                 <label for="leader-none" style="cursor: pointer; flex: 1;">なし</label>
             `;
@@ -296,20 +402,76 @@
 
             // Add user options
             availableUsers.forEach(user => {
+                const isAssignedElsewhere = usersAssignedAtSameTime.has(user.id);
+                const isCurrentlyAssigned = currentAssignment.leader === user.id;
+                const isDisabled = isAssignedElsewhere && !isCurrentlyAssigned;
+
                 const div = document.createElement('div');
                 div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
+
+                let labelStyle = 'cursor: pointer; flex: 1;';
+                let warningText = '';
+
+                if (isDisabled) {
+                    labelStyle += ' color: #9CA3AF;';
+                    const assignedLocation = usersAssignedAtSameTime.get(user.id);
+                    warningText = ` <span style="font-size: 11px; color: #EF4444;">(${assignedLocation}にアサイン済み)</span>`;
+                }
+
                 div.innerHTML = `
                     <input type="radio" name="leader" value="${user.id}" id="leader-${user.id}"
-                        ${currentAssignment.leader === user.id ? 'checked' : ''}
-                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
-                    <label for="leader-${user.id}" style="cursor: pointer; flex: 1;">${user.name}</label>
+                        ${isCurrentlyAssigned ? 'checked' : ''}
+                        ${isDisabled ? 'disabled' : ''}
+                        class="leader-radio"
+                        style="margin-right: 8px; width: 16px; height: 16px; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
+                    <label for="leader-${user.id}" style="${labelStyle}">${user.name}${warningText}</label>
                 `;
                 leadersList.appendChild(div);
+            });
+
+            // Add event listeners to radio buttons
+            document.querySelectorAll('.leader-radio').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const tempAssignment = getCurrentModalAssignment();
+                    updateCapacityIndicator(tempAssignment);
+                });
             });
 
             const modal = document.getElementById('assignmentModal');
             modal.classList.remove('hidden');
             modal.style.display = 'block';
+        }
+
+        function getCurrentModalAssignment() {
+            const participantCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+            const participants = Array.from(participantCheckboxes).map(cb => parseInt(cb.value));
+
+            const leaderRadio = document.querySelector('input[name="leader"]:checked');
+            const leader = leaderRadio && leaderRadio.value ? parseInt(leaderRadio.value) : null;
+
+            return { participants, leader };
+        }
+
+        function updateCapacityIndicator(assignment) {
+            const totalAssigned = assignment.participants.length + (assignment.leader ? 1 : 0);
+            const indicator = document.getElementById('capacityIndicator');
+
+            if (totalAssigned > currentSlotCapacity) {
+                indicator.style.backgroundColor = '#FEE2E2';
+                indicator.style.border = '2px solid #DC2626';
+                indicator.style.color = '#991B1B';
+                indicator.innerHTML = `⚠️ 定員オーバー: ${totalAssigned}人 / ${currentSlotCapacity}人（${totalAssigned - currentSlotCapacity}人超過）`;
+            } else if (totalAssigned === currentSlotCapacity) {
+                indicator.style.backgroundColor = '#FEF3C7';
+                indicator.style.border = '2px solid #F59E0B';
+                indicator.style.color = '#92400E';
+                indicator.innerHTML = `✓ 定員ちょうど: ${totalAssigned}人 / ${currentSlotCapacity}人`;
+            } else {
+                indicator.style.backgroundColor = '#D1FAE5';
+                indicator.style.border = '2px solid #10B981';
+                indicator.style.color = '#065F46';
+                indicator.innerHTML = `✓ 定員内: ${totalAssigned}人 / ${currentSlotCapacity}人（残り${currentSlotCapacity - totalAssigned}人）`;
+            }
         }
 
         function closeAssignmentModal() {
@@ -376,7 +538,7 @@
                 const leader = availableUsers.find(u => u.id === assignment.leader);
                 if (leader) {
                     html += '<div>';
-                    html += `<span style="display: inline-block; padding: 4px 8px; background-color: #E0E7FF; color: #3730A3; border-radius: 4px; font-size: 12px; font-weight: 600;">👑 ${leader.name}</span>`;
+                    html += `<span style="display: inline-block; padding: 4px 8px; background-color: #E0E7FF; color: #3730A3; border-radius: 4px; font-size: 12px; font-weight: 600;">👀 ${leader.name}</span>`;
                     html += '</div>';
                 }
             }

@@ -27,7 +27,7 @@ class EventSeeder extends Seeder
             return;
         }
 
-        // パターン1: シンプルなイベント（ロケーションなし、繰り返しなし）
+        // パターン1: シンプルなイベント（単一ロケーション）
         $this->createEventUseCase->execute([
             'title' => '三条京阪PW',
             'event_date' => now()->addDays(3)->format('Y-m-d'),
@@ -38,7 +38,8 @@ class EventSeeder extends Seeder
             'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $admin->id,
             'location' => '三条京阪駅周辺',
-            'notes' => 'シンプルなイベントのサンプルです。',
+            'locations' => ['北側エリア', '南側エリア'],
+            'notes' => 'シンプルなイベントのサンプルです。2つのアサインエリアがあります。',
         ]);
 
         // パターン2: 複数ロケーション
@@ -66,7 +67,8 @@ class EventSeeder extends Seeder
             'slot_duration' => AssignmentSlotDuration::FIFTEEN_MINUTES->value,
             'created_by' => $admin->id,
             'location' => '河原町駅周辺',
-            'notes' => '15分スロットのサンプルです。',
+            'locations' => ['東側エリア', '西側エリア', '中央エリア'],
+            'notes' => '15分スロットのサンプルです。3つのアサインエリアがあります。',
         ]);
 
         // パターン4: 繰り返しイベント（週次）
@@ -80,10 +82,11 @@ class EventSeeder extends Seeder
             'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $admin->id,
             'location' => '梅田駅周辺',
+            'locations' => ['A地点', 'B地点'],
             'is_recurring' => true,
             'recurrence_type' => 'weekly',
             'recurrence_end_date' => now()->addDays(14 + 28)->format('Y-m-d'), // 4週間
-            'notes' => '繰り返しイベントのサンプルです（4週間）。',
+            'notes' => '繰り返しイベントのサンプルです（4週間）。2つのアサインエリアがあります。',
         ]);
 
         // パターン5: 複数ロケーション + 10分スロット
@@ -110,8 +113,9 @@ class EventSeeder extends Seeder
             'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
             'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $admin->id,
+            'locations' => ['エリア1', 'エリア2'],
             'is_template' => true,
-            'notes' => 'イベント作成時に使用できるテンプレートです。',
+            'notes' => 'イベント作成時に使用できるテンプレートです。2つのアサインエリアがあります。',
         ]);
 
         // パターン7: 長時間イベント（30分スロット）

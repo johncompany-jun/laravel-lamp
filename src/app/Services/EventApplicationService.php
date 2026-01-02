@@ -18,10 +18,13 @@ class EventApplicationService
 
         foreach ($slots as $slotId => $slotData) {
             if (isset($slotData['slot_id']) && isset($slotData['availability'])) {
-                $validSlots[] = [
-                    'slot_id' => $slotData['slot_id'],
-                    'availability' => $slotData['availability'],
-                ];
+                // Only allow 'available' or 'unavailable' - reject null or any other value
+                if (in_array($slotData['availability'], ['available', 'unavailable'], true)) {
+                    $validSlots[] = [
+                        'slot_id' => $slotData['slot_id'],
+                        'availability' => $slotData['availability'],
+                    ];
+                }
             }
         }
 

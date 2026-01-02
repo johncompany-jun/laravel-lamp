@@ -216,6 +216,18 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">{{ __('events.user') }}</th>
+                                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                                <span class="material-icons" style="font-size: 16px;">build</span>
+                                                <span>{{ __('events.setup') }}</span>
+                                            </div>
+                                        </th>
+                                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                                <span class="material-icons" style="font-size: 16px;">cleaning_services</span>
+                                                <span>{{ __('events.cleanup') }}</span>
+                                            </div>
+                                        </th>
                                         @foreach($applicationSlots as $slot)
                                             <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                                 {{ date('H:i', strtotime($slot->start_time)) }}<br>
@@ -236,6 +248,20 @@
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
                                                 {{ $firstApp->user->name }}
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
+                                                @if($firstApp->can_help_setup)
+                                                    <span class="material-icons" style="font-size: 20px; color: #10B981;">check_circle</span>
+                                                @else
+                                                    <span class="text-gray-300">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
+                                                @if($firstApp->can_help_cleanup)
+                                                    <span class="material-icons" style="font-size: 20px; color: #10B981;">check_circle</span>
+                                                @else
+                                                    <span class="text-gray-300">-</span>
+                                                @endif
                                             </td>
                                             @foreach($applicationSlots as $slot)
                                                 <td class="px-3 py-4 whitespace-nowrap text-center text-sm">

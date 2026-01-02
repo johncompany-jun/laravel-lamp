@@ -139,13 +139,11 @@ class EventApplicationSeeder extends Seeder
         $availableSlots = $applicationSlots->random(min($availableCount, $applicationSlots->count()));
 
         foreach ($applicationSlots as $index => $slot) {
-            $availability = $availableSlots->contains($slot) ? 'available' : (rand(0, 1) === 1 ? 'unavailable' : null);
-            if ($availability !== null) {
-                $slots[$index] = [
-                    'slot_id' => $slot->id,
-                    'availability' => $availability,
-                ];
-            }
+            $availability = $availableSlots->contains($slot) ? 'available' : 'unavailable';
+            $slots[$index] = [
+                'slot_id' => $slot->id,
+                'availability' => $availability,
+            ];
         }
 
         try {
@@ -229,32 +227,22 @@ class EventApplicationSeeder extends Seeder
         $hasAvailable = false;
 
         foreach ($applicationSlots as $index => $slot) {
-            $rand = rand(0, 2);
-            $availability = match($rand) {
-                0 => 'available',
-                1 => 'unavailable',
-                2 => null,
-            };
+            $availability = rand(0, 1) === 0 ? 'available' : 'unavailable';
 
             if ($availability === 'available') {
                 $hasAvailable = true;
             }
 
-            if ($availability !== null) {
-                $slots[$index] = [
-                    'slot_id' => $slot->id,
-                    'availability' => $availability,
-                ];
-            }
+            $slots[$index] = [
+                'slot_id' => $slot->id,
+                'availability' => $availability,
+            ];
         }
 
         // 少なくとも1つのスロットがavailableであることを保証
         if (!$hasAvailable && $applicationSlots->count() > 0) {
-            $randomSlot = $applicationSlots->random();
-            $slots[0] = [
-                'slot_id' => $randomSlot->id,
-                'availability' => 'available',
-            ];
+            $randomIndex = array_rand($applicationSlots->toArray());
+            $slots[$randomIndex]['availability'] = 'available';
         }
 
         try {

@@ -99,11 +99,11 @@ class EventPresenter
     }
 
     /**
-     * Get applications count.
+     * Get applications count (unique users).
      */
     public function applicationsCount(): int
     {
-        return $this->event->applications()->count();
+        return $this->event->applications()->distinct('user_id')->count('user_id');
     }
 
     /**

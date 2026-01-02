@@ -147,6 +147,8 @@ return [
     'no_time_slots' => 'このイベントには利用可能なタイムスロットがありません。',
     'applications_count' => '件の申込',
     'cart_transport_support' => 'カート運搬サポート（任意）',
+    'setup' => '準備',
+    'cleanup' => '片付け',
     'can_help_setup' => '準備の手伝いができます（イベント前のカート運搬）',
     'can_help_cleanup' => '片付けの手伝いができます（イベント後のカート運搬）',
     'comment_optional' => 'コメント（任意）',

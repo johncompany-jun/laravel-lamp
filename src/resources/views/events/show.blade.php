@@ -173,6 +173,15 @@
                                         class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
                                     <span class="ml-3 text-sm text-gray-900">{{ __('events.can_help_cleanup') }}</span>
                                 </label>
+
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50">
+                                    <input type="checkbox"
+                                        name="can_transport_by_car"
+                                        value="1"
+                                        {{ $existingApplications->first()?->can_transport_by_car ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                    <span class="ml-3 text-sm text-gray-900">{{ __('events.can_transport_by_car') }}</span>
+                                </label>
                             </div>
                         </div>
 

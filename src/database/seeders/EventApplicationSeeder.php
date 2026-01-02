@@ -122,6 +122,7 @@ class EventApplicationSeeder extends Seeder
                 $slots,
                 rand(0, 1) === 1,
                 rand(0, 1) === 1,
+                rand(0, 3) === 1,
                 $this->generateComment()
             );
         } catch (\Exception $e) {
@@ -153,6 +154,7 @@ class EventApplicationSeeder extends Seeder
                 $slots,
                 rand(0, 2) === 1,
                 rand(0, 2) === 1,
+                rand(0, 4) === 1,
                 $this->generateComment()
             );
         } catch (\Exception $e) {
@@ -182,6 +184,7 @@ class EventApplicationSeeder extends Seeder
                 $slots,
                 rand(0, 1) === 1,
                 false,
+                rand(0, 5) === 1,
                 $this->generateComment()
             );
         } catch (\Exception $e) {
@@ -211,6 +214,7 @@ class EventApplicationSeeder extends Seeder
                 $slots,
                 false,
                 rand(0, 1) === 1,
+                rand(0, 5) === 1,
                 $this->generateComment()
             );
         } catch (\Exception $e) {
@@ -252,6 +256,7 @@ class EventApplicationSeeder extends Seeder
                 $slots,
                 rand(0, 3) === 1,
                 rand(0, 3) === 1,
+                rand(0, 4) === 1,
                 $this->generateComment()
             );
         } catch (\Exception $e) {

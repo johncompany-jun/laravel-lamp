@@ -118,6 +118,9 @@
             if (user.can_help_cleanup) {
                 badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #FEF3C7; color: #92400E; border-radius: 3px; margin-left: 4px; font-weight: 600;">片付</span>';
             }
+            if (user.can_transport_by_car) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #E9D5FF; color: #6B21A8; border-radius: 3px; margin-left: 4px; font-weight: 600;">車運搬</span>';
+            }
 
             if (isDisabled) {
                 labelStyle += ' color: #9CA3AF;';
@@ -179,6 +182,9 @@
             }
             if (user.can_help_cleanup) {
                 badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #FEF3C7; color: #92400E; border-radius: 3px; margin-left: 4px; font-weight: 600;">片付</span>';
+            }
+            if (user.can_transport_by_car) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #E9D5FF; color: #6B21A8; border-radius: 3px; margin-left: 4px; font-weight: 600;">車運搬</span>';
             }
 
             if (isDisabled) {

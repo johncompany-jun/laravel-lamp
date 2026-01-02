@@ -23,6 +23,7 @@ class SubmitEventApplicationUseCase
         array $slots,
         bool $canHelpSetup = false,
         bool $canHelpCleanup = false,
+        bool $canTransportByCar = false,
         ?string $comment = null
     ): void {
         // Validate and filter slots
@@ -39,6 +40,7 @@ class SubmitEventApplicationUseCase
             $validSlots,
             $canHelpSetup,
             $canHelpCleanup,
+            $canTransportByCar,
             $comment
         );
     }

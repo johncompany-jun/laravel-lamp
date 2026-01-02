@@ -32,6 +32,7 @@ return [
     'unavailable' => '不可',
     'setup' => '準備',
     'cleanup' => '片付け',
+    'car_transport' => '車運搬',
     'cancel' => 'キャンセル',
     'cancel_confirm' => 'この申し込みをキャンセルしてもよろしいですか？',
     'no_applications_yet' => 'まだイベントに申し込んでいません。',

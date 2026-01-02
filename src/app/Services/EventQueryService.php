@@ -140,12 +140,14 @@ class EventQueryService
             // Check if user can help with setup or cleanup (from any of their applications)
             $canHelpSetup = $userApps->contains(fn($app) => $app->can_help_setup);
             $canHelpCleanup = $userApps->contains(fn($app) => $app->can_help_cleanup);
+            $canTransportByCar = $userApps->contains(fn($app) => $app->can_transport_by_car);
 
             return [
                 'id' => $userId,
                 'name' => $userApps->first()->user->name,
                 'can_help_setup' => $canHelpSetup,
                 'can_help_cleanup' => $canHelpCleanup,
+                'can_transport_by_car' => $canTransportByCar,
             ];
         })->values();
     }

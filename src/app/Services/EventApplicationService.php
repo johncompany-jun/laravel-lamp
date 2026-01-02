@@ -40,6 +40,7 @@ class EventApplicationService
         array $validSlots,
         bool $canHelpSetup = false,
         bool $canHelpCleanup = false,
+        bool $canTransportByCar = false,
         ?string $comment = null
     ): void {
         // Delete existing applications for this event
@@ -54,6 +55,7 @@ class EventApplicationService
                 'availability' => $slotData['availability'],
                 'can_help_setup' => $canHelpSetup,
                 'can_help_cleanup' => $canHelpCleanup,
+                'can_transport_by_car' => $canTransportByCar,
                 'comment' => $comment,
             ]);
         }

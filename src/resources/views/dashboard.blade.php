@@ -78,6 +78,7 @@
                                             $firstApp = $applications->first();
                                             $canHelpSetup = $firstApp->can_help_setup ?? false;
                                             $canHelpCleanup = $firstApp->can_help_cleanup ?? false;
+                                            $canTransportByCar = $firstApp->can_transport_by_car ?? false;
                                         @endphp
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
@@ -112,7 +113,7 @@
                                                         @endif
                                                     @endforeach
                                                 </div>
-                                                @if($canHelpSetup || $canHelpCleanup)
+                                                @if($canHelpSetup || $canHelpCleanup || $canTransportByCar)
                                                     <div class="flex flex-wrap gap-1 mt-2">
                                                         @if($canHelpSetup)
                                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
@@ -122,6 +123,11 @@
                                                         @if($canHelpCleanup)
                                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                                                 {{ __('dashboard.cleanup') }}
+                                                            </span>
+                                                        @endif
+                                                        @if($canTransportByCar)
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                                                {{ __('dashboard.car_transport') }}
                                                             </span>
                                                         @endif
                                                     </div>

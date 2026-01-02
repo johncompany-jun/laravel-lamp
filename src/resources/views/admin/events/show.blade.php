@@ -228,6 +228,12 @@
                                                 <span>{{ __('events.cleanup') }}</span>
                                             </div>
                                         </th>
+                                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                                                <span class="material-icons" style="font-size: 16px;">directions_car</span>
+                                                <span>{{ __('events.car_transport') }}</span>
+                                            </div>
+                                        </th>
                                         @foreach($applicationSlots as $slot)
                                             <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                                 {{ date('H:i', strtotime($slot->start_time)) }}<br>
@@ -258,6 +264,13 @@
                                             </td>
                                             <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
                                                 @if($firstApp->can_help_cleanup)
+                                                    <span class="material-icons" style="font-size: 20px; color: #10B981;">check_circle</span>
+                                                @else
+                                                    <span class="text-gray-300">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
+                                                @if($firstApp->can_transport_by_car)
                                                     <span class="material-icons" style="font-size: 20px; color: #10B981;">check_circle</span>
                                                 @else
                                                     <span class="text-gray-300">-</span>

@@ -17,6 +17,7 @@ class EventApplication extends Model
         'availability',
         'can_help_setup',
         'can_help_cleanup',
+        'can_transport_by_car',
         'comment',
     ];
 

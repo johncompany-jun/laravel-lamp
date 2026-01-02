@@ -103,4 +103,45 @@ class EventQueryService
             ->with(['user', 'slot'])
             ->get();
     }
+
+    /**
+     * Prepare assignment data for the create assignments page.
+     */
+    public function prepareAssignmentData(Event $event): array
+    {
+        // Get unique time slots (sorted)
+        $timeSlots = $event->slots->unique(function ($slot) {
+            return $slot->start_time . '-' . $slot->end_time;
+        })->sortBy('start_time')->values();
+
+        // Get locations
+        $locations = $event->locations ?? [];
+
+        // Group slots by time and location
+        $slotMatrix = [];
+        foreach ($event->slots as $slot) {
+            $timeKey = $slot->start_time . '-' . $slot->end_time;
+            $locationKey = $slot->location ?? 'default';
+            $slotMatrix[$timeKey][$locationKey] = $slot;
+        }
+
+        return [
+            'timeSlots' => $timeSlots,
+            'locations' => $locations,
+            'slotMatrix' => $slotMatrix,
+        ];
+    }
+
+    /**
+     * Prepare available users list from applications.
+     */
+    public function prepareAvailableUsers(\Illuminate\Support\Collection $applications): \Illuminate\Support\Collection
+    {
+        return $applications->map(function ($userApps, $userId) {
+            return [
+                'id' => $userId,
+                'name' => $userApps->first()->user->name,
+            ];
+        })->values();
+    }
 }

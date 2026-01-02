@@ -70,32 +70,6 @@
                     <form method="POST" action="{{ route('admin.events.assignments.store', $event) }}" id="assignmentForm">
                         @csrf
 
-                        @php
-                            // Get unique time slots (sorted)
-                            $timeSlots = $event->slots->unique(function ($slot) {
-                                return $slot->start_time . '-' . $slot->end_time;
-                            })->sortBy('start_time')->values();
-
-                            // Get locations
-                            $locations = $event->locations ?? [];
-
-                            // Group slots by time and location
-                            $slotMatrix = [];
-                            foreach ($event->slots as $slot) {
-                                $timeKey = $slot->start_time . '-' . $slot->end_time;
-                                $locationKey = $slot->location ?? 'default';
-                                $slotMatrix[$timeKey][$locationKey] = $slot;
-                            }
-
-                            // Get all users with their applications
-                            $availableUsers = $applications->map(function ($userApps, $userId) {
-                                return [
-                                    'id' => $userId,
-                                    'name' => $userApps->first()->user->name,
-                                ];
-                            })->values();
-                        @endphp
-
                         <div class="overflow-x-auto mb-6">
                             <table class="min-w-full border-collapse border border-gray-300">
                                 <thead>

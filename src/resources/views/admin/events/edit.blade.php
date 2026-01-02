@@ -1,8 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('events.edit_event') }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('events.edit_event') }}
+            </h2>
+            <a href="{{ route('admin.events.index') }}"
+               style="display: inline-flex; align-items: center; padding: 8px 16px; background-color: #6B7280; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
+               onmouseover="this.style.backgroundColor='#4B5563'"
+               onmouseout="this.style.backgroundColor='#6B7280'">
+                {{ __('events.back_to_list') }}
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-12">

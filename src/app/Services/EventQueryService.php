@@ -24,12 +24,11 @@ class EventQueryService
     }
 
     /**
-     * Get all parent events for admin.
+     * Get all events (including child events) for admin.
      */
     public function getParentEvents(int $perPage = 20, array $filters = []): LengthAwarePaginator
     {
-        $query = Event::with('creator')
-            ->whereNull('parent_event_id');
+        $query = Event::with(['creator', 'parentEvent']);
 
         // Apply filters
         if (!empty($filters['location'])) {

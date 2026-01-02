@@ -131,10 +131,23 @@
                                     @foreach($events as $event)
                                         @php
                                             $presenter = new \App\Presenters\EventPresenter($event);
+                                            $isChildEvent = $event->parent_event_id !== null;
                                         @endphp
-                                        <tr style="transition: background-color 0.15s;" onmouseover="this.style.backgroundColor='#F9FAFB'" onmouseout="this.style.backgroundColor='white'">
+                                        <tr style="transition: background-color 0.15s; {{ $isChildEvent ? 'background-color: #F9FAFB;' : '' }}" onmouseover="this.style.backgroundColor='{{ $isChildEvent ? '#F3F4F6' : '#F9FAFB' }}'" onmouseout="this.style.backgroundColor='{{ $isChildEvent ? '#F9FAFB' : 'white' }}'">
                                             <td class="px-6 py-4">
-                                                <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
+                                                <div style="display: flex; align-items: center; gap: 8px; {{ $isChildEvent ? 'margin-left: 24px;' : '' }}">
+                                                    @if($isChildEvent)
+                                                        <span class="material-icons" style="font-size: 16px; color: #9CA3AF;">subdirectory_arrow_right</span>
+                                                    @endif
+                                                    <div>
+                                                        <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
+                                                        @if($isChildEvent)
+                                                            <div class="text-xs text-gray-500" style="margin-top: 2px;">
+                                                                繰り返し: {{ $event->parentEvent->title ?? '' }}
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                                 {!! $presenter->badges() !!}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

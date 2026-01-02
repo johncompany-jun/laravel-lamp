@@ -99,40 +99,99 @@
                     <h3 class="text-lg font-semibold mb-4">{{ __('events.time_slots') }} ({{ $event->slots->count() }})</h3>
 
                     @if($event->slots->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($event->slots as $slot)
-                                <div class="border rounded-lg p-4 {{ $slot->isFull() ? 'bg-gray-50' : 'bg-white' }}">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <p class="font-medium text-gray-900">
-                                                {{ date('H:i', strtotime($slot->start_time)) }} - {{ date('H:i', strtotime($slot->end_time)) }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 mt-1">
-                                                {{ __('events.capacity') }}: {{ $slot->assignments->count() }} / {{ $slot->capacity }}
-                                            </p>
-                                        </div>
-                                        @if($slot->isFull())
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                {{ __('events.full') }}
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                {{ __('events.available') }}
-                                            </span>
-                                        @endif
-                                    </div>
+                        @php
+                            // ロケーションごとにスロットをグループ化
+                            $slotsByLocation = $event->slots->groupBy(function($slot) {
+                                return $slot->location ?? 'default';
+                            });
+                            $locations = $event->locations ?? [];
+                        @endphp
 
-                                    @if($slot->assignments->count() > 0)
-                                        <div class="mt-3 pt-3 border-t">
-                                            <p class="text-xs font-medium text-gray-700 mb-1">{{ __('events.assigned') }}:</p>
-                                            @foreach($slot->assignments as $assignment)
-                                                <p class="text-sm text-gray-600">{{ $assignment->user->name }}</p>
+                        @if(count($locations) > 0)
+                            @foreach($locations as $location)
+                                @php
+                                    $locationSlots = $slotsByLocation->get($location, collect());
+                                @endphp
+                                @if($locationSlots->count() > 0)
+                                    <div class="mb-6">
+                                        <h4 class="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                            <span class="material-icons" style="font-size: 20px; color: #4F46E5;">location_on</span>
+                                            {{ $location }} ({{ $locationSlots->count() }}スロット)
+                                        </h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            @foreach($locationSlots->sortBy('start_time') as $slot)
+                                                <div class="border rounded-lg p-4 {{ $slot->isFull() ? 'bg-gray-50' : 'bg-white' }}">
+                                                    <div class="flex justify-between items-start">
+                                                        <div>
+                                                            <p class="font-medium text-gray-900">
+                                                                {{ date('H:i', strtotime($slot->start_time)) }} - {{ date('H:i', strtotime($slot->end_time)) }}
+                                                            </p>
+                                                            <p class="text-xs text-gray-500 mt-1">
+                                                                {{ __('events.capacity') }}: {{ $slot->assignments->count() }} / {{ $slot->capacity }}
+                                                            </p>
+                                                        </div>
+                                                        @if($slot->isFull())
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                                {{ __('events.full') }}
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                {{ __('events.available') }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    @if($slot->assignments->count() > 0)
+                                                        <div class="mt-3 pt-3 border-t">
+                                                            <p class="text-xs font-medium text-gray-700 mb-1">{{ __('events.assigned') }}:</p>
+                                                            @foreach($slot->assignments as $assignment)
+                                                                <p class="text-sm text-gray-600">{{ $assignment->user->name }}</p>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
                                             @endforeach
                                         </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             @endforeach
-                        </div>
+                        @else
+                            {{-- ロケーションが設定されていない場合（従来通り） --}}
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @foreach($event->slots->sortBy('start_time') as $slot)
+                                    <div class="border rounded-lg p-4 {{ $slot->isFull() ? 'bg-gray-50' : 'bg-white' }}">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <p class="font-medium text-gray-900">
+                                                    {{ date('H:i', strtotime($slot->start_time)) }} - {{ date('H:i', strtotime($slot->end_time)) }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    {{ __('events.capacity') }}: {{ $slot->assignments->count() }} / {{ $slot->capacity }}
+                                                </p>
+                                            </div>
+                                            @if($slot->isFull())
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                    {{ __('events.full') }}
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                    {{ __('events.available') }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        @if($slot->assignments->count() > 0)
+                                            <div class="mt-3 pt-3 border-t">
+                                                <p class="text-xs font-medium text-gray-700 mb-1">{{ __('events.assigned') }}:</p>
+                                                @foreach($slot->assignments as $assignment)
+                                                    <p class="text-sm text-gray-600">{{ $assignment->user->name }}</p>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     @else
                         <p class="text-gray-500">{{ __('events.no_time_slots') }}</p>
                     @endif

@@ -58,7 +58,9 @@
                         <!-- Title and Status (2-column) -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label for="title" class="block font-medium text-sm text-gray-700">{{ __('events.title') }}</label>
+                                <label for="title" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.title') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <input type="text" name="title" id="title" value="{{ old('title', $event->title) }}" required
                                     class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
                                 @error('title')
@@ -66,7 +68,9 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="status" class="block font-medium text-sm text-gray-700">{{ __('events.status') }}</label>
+                                <label for="status" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.status') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <x-enum-select
                                     :enum="\App\Enums\EventStatus::class"
                                     name="status"
@@ -83,7 +87,9 @@
                         <!-- Event Date, Start Time, End Time (3-column) -->
                         <div class="grid grid-cols-3 gap-4 mb-4">
                             <div>
-                                <label for="event_date" class="block font-medium text-sm text-gray-700">{{ __('events.event_date') }}</label>
+                                <label for="event_date" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.event_date') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <input type="date" name="event_date" id="event_date" value="{{ old('event_date', $event->event_date->format('Y-m-d')) }}" required
                                     class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
                                 @error('event_date')
@@ -91,7 +97,9 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="start_time" class="block font-medium text-sm text-gray-700">{{ __('events.start_time') }}</label>
+                                <label for="start_time" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.start_time') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <input type="time" name="start_time" id="start_time"
                                     value="{{ old('start_time', substr($event->start_time, 0, 5)) }}"
                                     required
@@ -105,7 +113,9 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="end_time" class="block font-medium text-sm text-gray-700">{{ __('events.end_time') }}</label>
+                                <label for="end_time" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.end_time') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <input type="time" name="end_time" id="end_time"
                                     value="{{ old('end_time', substr($event->end_time, 0, 5)) }}"
                                     required
@@ -123,7 +133,9 @@
                         <!-- Application Slot, Assignment Slot, Location (3-column) -->
                         <div class="grid grid-cols-3 gap-4 mb-4">
                             <div>
-                                <label for="application_slot_duration" class="block font-medium text-sm text-gray-700">{{ __('events.application_slot_duration') }}</label>
+                                <label for="application_slot_duration" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.application_slot_duration') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <x-enum-select
                                     :enum="\App\Enums\ApplicationSlotDuration::class"
                                     name="application_slot_duration"
@@ -141,7 +153,9 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="slot_duration" class="block font-medium text-sm text-gray-700">{{ __('events.assignment_slot_duration') }}</label>
+                                <label for="slot_duration" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.assignment_slot_duration') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
                                 <x-enum-select
                                     :enum="\App\Enums\AssignmentSlotDuration::class"
                                     name="slot_duration"
@@ -159,8 +173,10 @@
                                 @enderror
                             </div>
                             <div>
-                                <label for="location" class="block font-medium text-sm text-gray-700">{{ __('events.location') }}</label>
-                                <input type="text" name="location" id="location" value="{{ old('location', $event->location) }}"
+                                <label for="location" class="block font-medium text-sm text-gray-700">
+                                    {{ __('events.location') }}<span class="text-red-500 ml-1">*</span>
+                                </label>
+                                <input type="text" name="location" id="location" value="{{ old('location', $event->location) }}" required
                                     class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm mt-1 block w-full">
                                 @error('location')
                                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>

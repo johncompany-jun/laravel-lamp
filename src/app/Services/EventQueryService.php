@@ -137,9 +137,15 @@ class EventQueryService
     public function prepareAvailableUsers(\Illuminate\Support\Collection $applications): \Illuminate\Support\Collection
     {
         return $applications->map(function ($userApps, $userId) {
+            // Check if user can help with setup or cleanup (from any of their applications)
+            $canHelpSetup = $userApps->contains(fn($app) => $app->can_help_setup);
+            $canHelpCleanup = $userApps->contains(fn($app) => $app->can_help_cleanup);
+
             return [
                 'id' => $userId,
                 'name' => $userApps->first()->user->name,
+                'can_help_setup' => $canHelpSetup,
+                'can_help_cleanup' => $canHelpCleanup,
             ];
         })->values();
     }

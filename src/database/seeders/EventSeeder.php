@@ -52,6 +52,7 @@ class EventSeeder extends Seeder
             'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
             'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $admin->id,
+            'location' => '京都駅周辺',
             'locations' => ['北西エリア', '北東エリア', '南側エリア'],
             'notes' => '複数ロケーションのサンプルです。',
         ]);
@@ -99,6 +100,7 @@ class EventSeeder extends Seeder
             'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
             'slot_duration' => AssignmentSlotDuration::TEN_MINUTES->value,
             'created_by' => $admin->id,
+            'location' => '大阪城公園',
             'locations' => ['天守閣エリア', '西の丸庭園', '梅林エリア', '桜門エリア'],
             'notes' => '10分スロット + 4ロケーションのサンプルです。',
         ]);
@@ -113,6 +115,7 @@ class EventSeeder extends Seeder
             'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
             'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $admin->id,
+            'location' => 'テンプレート場所',
             'locations' => ['エリア1', 'エリア2'],
             'is_template' => true,
             'notes' => 'イベント作成時に使用できるテンプレートです。2つのアサインエリアがあります。',
@@ -128,6 +131,7 @@ class EventSeeder extends Seeder
             'application_slot_duration' => ApplicationSlotDuration::TWO_HOURS->value,
             'slot_duration' => AssignmentSlotDuration::THIRTY_MINUTES->value,
             'created_by' => $admin->id,
+            'location' => '奈良公園',
             'locations' => ['東大寺エリア', '春日大社エリア'],
             'notes' => '6時間の長時間イベントです。30分スロットを使用。',
         ]);

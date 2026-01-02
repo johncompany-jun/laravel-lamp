@@ -109,6 +109,15 @@
 
             let labelStyle = 'cursor: pointer; flex: 1;';
             let warningText = '';
+            let badges = '';
+
+            // Add setup/cleanup badges
+            if (user.can_help_setup) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #DBEAFE; color: #1E40AF; border-radius: 3px; margin-left: 4px; font-weight: 600;">準備</span>';
+            }
+            if (user.can_help_cleanup) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #FEF3C7; color: #92400E; border-radius: 3px; margin-left: 4px; font-weight: 600;">片付</span>';
+            }
 
             if (isDisabled) {
                 labelStyle += ' color: #9CA3AF;';
@@ -122,7 +131,7 @@
                     ${isDisabled ? 'disabled' : ''}
                     class="participant-checkbox"
                     style="margin-right: 8px; width: 16px; height: 16px; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
-                <label for="participant-${user.id}" style="${labelStyle}">${user.name}${warningText}</label>
+                <label for="participant-${user.id}" style="${labelStyle}">${user.name}${badges}${warningText}</label>
             `;
             participantsList.appendChild(div);
         });
@@ -162,6 +171,15 @@
 
             let labelStyle = 'cursor: pointer; flex: 1;';
             let warningText = '';
+            let badges = '';
+
+            // Add setup/cleanup badges
+            if (user.can_help_setup) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #DBEAFE; color: #1E40AF; border-radius: 3px; margin-left: 4px; font-weight: 600;">準備</span>';
+            }
+            if (user.can_help_cleanup) {
+                badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #FEF3C7; color: #92400E; border-radius: 3px; margin-left: 4px; font-weight: 600;">片付</span>';
+            }
 
             if (isDisabled) {
                 labelStyle += ' color: #9CA3AF;';
@@ -175,7 +193,7 @@
                     ${isDisabled ? 'disabled' : ''}
                     class="leader-radio"
                     style="margin-right: 8px; width: 16px; height: 16px; cursor: ${isDisabled ? 'not-allowed' : 'pointer'};">
-                <label for="leader-${user.id}" style="${labelStyle}">${user.name}${warningText}</label>
+                <label for="leader-${user.id}" style="${labelStyle}">${user.name}${badges}${warningText}</label>
             `;
             leadersList.appendChild(div);
         });

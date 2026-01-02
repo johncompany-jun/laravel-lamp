@@ -18,7 +18,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->integer('slot_duration')->comment('Time slot duration in minutes (10, 20, or 30)');
-            $table->string('location')->nullable();
+            $table->string('location');
             $table->text('notes')->nullable();
             $table->enum('status', ['draft', 'open', 'closed', 'completed'])->default('draft');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');

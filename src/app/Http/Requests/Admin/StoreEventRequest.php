@@ -32,7 +32,7 @@ class StoreEventRequest extends FormRequest
             'end_time' => 'required|date_format:H:i|after:start_time',
             'slot_duration' => ['required', Rule::enum(AssignmentSlotDuration::class)],
             'application_slot_duration' => ['required', Rule::enum(ApplicationSlotDuration::class)],
-            'location' => 'nullable|string|max:255',
+            'location' => 'required|string|max:255',
             'locations' => 'nullable|array|max:3',
             'locations.*' => 'nullable|string|max:255',
             'notes' => 'nullable|string',

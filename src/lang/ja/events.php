@@ -56,6 +56,7 @@ return [
     'locations' => '場所',
     'not_set' => '未設定',
     'view_details' => '詳細を表示',
+    'view_event_details' => 'イベント詳細を表示',
     'edit_event_btn' => 'イベントを編集',
     'assign_users_btn' => 'ユーザーをアサイン',
     'delete_event' => 'イベントを削除',

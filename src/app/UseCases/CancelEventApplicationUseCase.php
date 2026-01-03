@@ -2,7 +2,7 @@
 
 namespace App\UseCases;
 
-use App\Models\EventApplication;
+use App\Models\Event;
 use App\Models\User;
 use App\Services\EventApplicationService;
 
@@ -13,16 +13,13 @@ class CancelEventApplicationUseCase
     ) {}
 
     /**
-     * Execute the use case to cancel an event application.
+     * Execute the use case to cancel all event applications for a user and event.
      *
-     * @throws \UnauthorizedAccessException
+     * @throws \Exception
      */
-    public function execute(EventApplication $application, User $user): void
+    public function execute(Event $event, User $user): void
     {
-        $cancelled = $this->applicationService->cancelApplication($application, $user);
-
-        if (!$cancelled) {
-            throw new \Exception('Unauthorized action.');
-        }
+        // Delete all applications for this event by this user
+        $this->applicationService->deleteUserApplications($user, $event);
     }
 }

@@ -144,6 +144,7 @@ return [
     'can_update_application' => 'フォームを再送信して申込内容を更新できます。',
     'select_time_slots' => 'タイムスロットと可否を選択',
     'select_multiple_slots_note' => '複数のタイムスロットを選択できます。各スロットについて、参加可能か不可能かを選択してください。',
+    'select_availability_for_all_slots' => 'すべてのタイムスロットについて、参加可能か不可能かを選択してください。',
     'no_time_slots' => 'このイベントには利用可能なタイムスロットがありません。',
     'applications_count' => '件の申込',
     'cart_transport_support' => 'カート運搬サポート（任意）',

@@ -80,6 +80,7 @@ class EventController extends Controller
                 $slots,
                 $request->input('can_help_setup', false),
                 $request->input('can_help_cleanup', false),
+                $request->input('can_transport_by_car', false),
                 $validated['comment'] ?? null
             );
 
@@ -95,12 +96,12 @@ class EventController extends Controller
     /**
      * Cancel an event application.
      */
-    public function cancelApplication(EventApplication $application)
+    public function cancelApplication(Event $event)
     {
         $user = auth()->user();
 
         try {
-            $this->cancelApplicationUseCase->execute($application, $user);
+            $this->cancelApplicationUseCase->execute($event, $user);
 
             return redirect()->route('dashboard')
                 ->with('success', 'Application cancelled successfully!');

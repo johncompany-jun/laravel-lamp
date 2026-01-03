@@ -22,8 +22,12 @@ class SubmitEventApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'slots' => 'required|array',
+            'slots.*.slot_id' => 'required|exists:event_application_slots,id',
+            'slots.*.availability' => 'required|in:available,unavailable',
             'can_help_setup' => 'nullable|boolean',
             'can_help_cleanup' => 'nullable|boolean',
+            'can_transport_by_car' => 'nullable|boolean',
             'comment' => 'nullable|string|max:500',
         ];
     }

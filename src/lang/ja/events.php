@@ -20,8 +20,8 @@ return [
     // Status
     'draft' => '下書き',
     'open' => '募集中',
-    'closed' => '募集終了',
-    'completed' => '完了',
+    'closed' => '確定',
+    'completed' => '中止',
 
     // Tags
     'recurring' => '繰り返し',

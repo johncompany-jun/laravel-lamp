@@ -40,10 +40,12 @@ class DashboardController extends Controller
             ->take(5);
 
         // Get user's assignments (confirmed schedules)
+        // Only show assignments for events with status 'closed' (confirmed)
         $myAssignments = EventAssignment::where('user_id', $user->id)
             ->with(['event', 'slot'])
             ->whereHas('event', function ($query) {
-                $query->where('event_date', '>=', today());
+                $query->where('event_date', '>=', today())
+                    ->where('status', 'closed');
             })
             ->orderBy('created_at', 'desc')
             ->limit(5)

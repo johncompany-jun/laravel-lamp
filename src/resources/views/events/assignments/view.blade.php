@@ -5,7 +5,7 @@
                 {{ $event->title }} - アサイン表
             </h2>
             <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                ← ダッシュボードに戻る
+                ダッシュボードに戻る
             </a>
         </div>
     </x-slot>
@@ -15,7 +15,14 @@
             <!-- Event Information -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold mb-4">{{ __('events.event_details') }}</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold">{{ __('events.event_details') }}</h3>
+                        @if($event->status === App\Enums\EventStatus::COMPLETED)
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                {{ __('dashboard.event_cancelled') }}
+                            </span>
+                        @endif
+                    </div>
                     <div class="grid grid-cols-4 gap-4">
                         <div>
                             <p class="text-sm text-gray-600">{{ __('events.date') }}</p>
@@ -34,6 +41,11 @@
                             <p class="font-medium">{{ !empty($event->locations) ? implode(', ', $event->locations) : __('events.not_set') }}</p>
                         </div>
                     </div>
+                    @if($event->status === App\Enums\EventStatus::COMPLETED)
+                        <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
+                            <p class="text-red-700 font-bold text-lg">このPWイベントは中止になりました</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 

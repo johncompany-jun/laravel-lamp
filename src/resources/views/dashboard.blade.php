@@ -21,11 +21,12 @@
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.date') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.time_slot') }}</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.location') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('dashboard.status') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($myAssignments as $assignment)
-                                        <tr>
+                                        <tr class="{{ $assignment->event->status === App\Enums\EventStatus::COMPLETED ? 'border-l-4 border-red-500' : '' }}">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <a href="{{ route('events.assignments.view', $assignment->event) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
                                                     {{ $assignment->event->title }}
@@ -39,6 +40,17 @@
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $assignment->slot->location ?? __('dashboard.n_a') }}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                @if($assignment->event->status === App\Enums\EventStatus::COMPLETED)
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-600 text-white">
+                                                        {{ __('dashboard.event_cancelled') }}
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        {{ __('dashboard.event_confirmed') }}
+                                                    </span>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach

@@ -19,7 +19,7 @@ return [
     'accepting_applications' => '申込受付中',
     'location' => '場所',
     'apply' => '申込する',
-    'no_open_events' => '現在募集中のイベントはありません。',
+    'no_open_events' => '現在募集中のPWイベントはありません。',
     'my_applications' => '申込履歴',
     'event' => 'イベント',
     'date' => '日付',
@@ -40,4 +40,7 @@ return [
     'my_confirmed_schedule' => '確定スケジュール',
     'no_assignments_yet' => 'まだ確定したアサインはありません。',
     'n_a' => '未設定',
+    'status' => 'ステータス',
+    'event_confirmed' => '確定',
+    'event_cancelled' => '中止',
 ];

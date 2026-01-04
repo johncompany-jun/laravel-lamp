@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Models\Event;
 use App\Models\EventApplication;
 use App\Models\EventAssignment;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -14,7 +14,7 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         // Get open events (events accepting applications)
-        $openEvents = Event::where('status', 'open')
+        $openEvents = Event::where('status', EventStatus::OPEN)
             ->whereNull('parent_event_id')
             ->where('event_date', '>=', today())
             ->orderBy('event_date')
@@ -40,12 +40,12 @@ class DashboardController extends Controller
             ->take(5);
 
         // Get user's assignments (confirmed schedules)
-        // Only show assignments for events with status 'closed' (confirmed)
+        // Show assignments for events with status 'closed' (confirmed) or 'completed' (cancelled)
         $myAssignments = EventAssignment::where('user_id', $user->id)
             ->with(['event', 'slot'])
             ->whereHas('event', function ($query) {
                 $query->where('event_date', '>=', today())
-                    ->where('status', 'closed');
+                    ->whereIn('status', [EventStatus::CLOSED, EventStatus::COMPLETED]);
             })
             ->orderBy('created_at', 'desc')
             ->limit(5)

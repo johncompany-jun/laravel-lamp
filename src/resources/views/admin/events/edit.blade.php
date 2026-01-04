@@ -4,12 +4,14 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ __('events.edit_event') }}
             </h2>
-            <a href="{{ route('admin.events.index') }}"
-               style="display: inline-flex; align-items: center; padding: 8px 16px; background-color: #6B7280; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; transition: background-color 0.2s;"
-               onmouseover="this.style.backgroundColor='#4B5563'"
-               onmouseout="this.style.backgroundColor='#6B7280'">
-                {{ __('events.back_to_list') }}
-            </a>
+            <div class="flex gap-3">
+                <a href="{{ route('admin.events.assignments.create', $event) }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                    {{ __('events.create_assignments') }}
+                </a>
+                <a href="{{ route('admin.events.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                    {{ __('events.back_to_list') }}
+                </a>
+            </div>
         </div>
     </x-slot>
 

@@ -74,6 +74,27 @@ MAIL_FROM_NAME="${APP_NAME}"
 QUEUE_CONNECTION=database
 ```
 
+### 1.3 フロントエンドアセットのビルド
+
+**重要**: 本番環境ではViteの開発サーバーは動作しません。デプロイ前にアセットをビルドする必要があります。
+
+```bash
+# ローカル環境で実行
+# Node.jsとnpmがインストールされていることを確認
+node -v
+npm -v
+
+# 依存関係をインストール（初回のみ）
+npm install
+
+# 本番用にビルド
+npm run build
+```
+
+ビルドが完了すると、`public/build/` ディレクトリにCSS/JavaScriptファイルが生成されます。
+
+**注意**: `public/build/` ディレクトリも必ずサーバーにアップロードしてください。これがないとCSSやJavaScriptが読み込まれません。
+
 ## 2. ファイルのアップロード
 
 ### 2.1 SSHでサーバーに接続

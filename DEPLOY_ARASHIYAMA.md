@@ -68,16 +68,37 @@ MAIL_USERNAME=noreply@arashiyama-cong-map.net
 MAIL_PASSWORD=your-email-password
 ```
 
-### 2.2 ファイルの準備
+### 2.2 フロントエンドアセットのビルド
+
+**重要**: 本番環境ではViteの開発サーバーは動作しません。事前にアセットをビルドする必要があります。
+
+```bash
+# ローカル環境で実行
+# Node.jsとnpmがインストールされていることを確認
+node -v
+npm -v
+
+# 依存関係をインストール（初回のみ）
+npm install
+
+# 本番用にビルド
+npm run build
+```
+
+ビルドが完了すると、`public/build/` ディレクトリにCSS/JavaScriptファイルが生成されます。
+
+### 2.3 ファイルの準備
 
 デプロイ前に以下を確認:
 
 ```bash
-# Gitでコミット
+# ビルド済みファイルも含めてコミット
 git add .
 git commit -m "Prepare for production deployment"
 git push origin main
 ```
+
+**注意**: `public/build/` ディレクトリも必ずコミットしてください。これがないとCSSやJavaScriptが読み込まれません。
 
 ## 3. サーバーへのデプロイ
 

@@ -2,360 +2,344 @@
 
 このドキュメントは、`arashiyama-cong-map.net` ドメインへのデプロイ専用の手順書です。
 
+## 前提条件
+
+- エックスサーバーのアカウントとドメイン設定が完了していること
+- ローカル環境にNode.js、npm、SSH鍵が設定されていること
+- Docker環境でLaravelアプリケーションが動作していること
+
 ## 1. エックスサーバー側の準備
 
-### 1.1 データベース作成
+### 1.1 データベース設定
 
-1. エックスサーバーのサーバーパネルにログイン
-2. 「MySQL設定」を開く
-3. 「MySQL追加」タブで新しいデータベースを作成
-   - 推奨データベース名: `arashiyama_events` など
-4. 「MySQLユーザ追加」タブでユーザーを作成
-5. 「MySQL一覧」タブでユーザーにデータベースへのアクセス権を付与
-6. 以下の情報をメモ:
-   ```
-   DB_HOST: mysqlXXX.xserver.jp (サーバーパネルに表示されます)
-   DB_DATABASE: 作成したデータベース名
-   DB_USERNAME: 作成したユーザー名
-   DB_PASSWORD: 設定したパスワード
-   ```
+既に作成されている場合はこのステップはスキップしてください。
 
-### 1.2 SSH接続の有効化
+データベース情報:
+```
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_PORT=3306
+DB_DATABASE=johncompany_arashiyama
+DB_USERNAME=johncompany_jwar
+DB_PASSWORD=jw1914arashiyama
+```
+
+### 1.2 SSH接続の設定
 
 1. サーバーパネル → 「SSH設定」
 2. 「SSH設定」タブでONに設定
-3. 「公開鍵認証用鍵ペアの生成」タブで鍵を生成（推奨）
-4. 秘密鍵をダウンロードして保存
+3. 「公開鍵認証用鍵ペアの生成」タブで鍵ペアを生成
+4. 秘密鍵ファイル（例: `sv16408.key`）をダウンロード
+5. ローカルに保存して権限を設定:
+   ```bash
+   mv ~/Downloads/sv*.key ~/.ssh/xserver.key
+   chmod 600 ~/.ssh/xserver.key
+   ```
 
-### 1.3 PHPバージョンの設定
+6. SSH接続テスト:
+   ```bash
+   ssh -i ~/.ssh/xserver.key -p 10022 johncompany@sv16408.xserver.jp
+   ```
 
-1. サーバーパネル → 「PHP Ver.切替」
-2. `arashiyama-cong-map.net` ドメインを選択
-3. PHP 8.3.X を選択
-4. 「変更」をクリック
-
-### 1.4 メールアカウントの作成（メール通知機能用）
-
-1. サーバーパネル → 「メールアカウント設定」
-2. `arashiyama-cong-map.net` を選択
-3. 「メールアカウント追加」タブ
-4. `noreply@arashiyama-cong-map.net` を作成
-5. パスワードをメモ
-
-### 1.5 SSL証明書の設定（無料）
-
-1. サーバーパネル → 「SSL設定」
-2. `arashiyama-cong-map.net` を選択
-3. 「独自SSL設定追加」タブ
-4. 無料独自SSL（Let's Encrypt）を追加
-5. 反映まで数分〜1時間程度待つ
+   パスフレーズはサーバーID（`johncompany`）と同じです。
 
 ## 2. ローカル環境での準備
 
-### 2.1 .envファイルの設定
+### 2.1 .envファイルの確認
 
-`.env.arashiyama` ファイルを編集して、エックスサーバーの情報を入力:
-
-```bash
-# データベース情報を入力
-DB_HOST=mysqlXXX.xserver.jp
-DB_DATABASE=arashiyama_events
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-
-# メール情報を入力
-MAIL_USERNAME=noreply@arashiyama-cong-map.net
-MAIL_PASSWORD=your-email-password
-```
+`.env.arashiyama` ファイルが既に設定されていることを確認してください。
 
 ### 2.2 フロントエンドアセットのビルド
 
-**重要**: 本番環境ではViteの開発サーバーは動作しません。事前にアセットをビルドする必要があります。
+**重要**: 本番環境ではViteの開発サーバーは動作しません。`APP_ENV=production` で事前にアセットをビルドする必要があります。
 
 ```bash
-# ローカル環境で実行
-# Node.jsとnpmがインストールされていることを確認
-node -v
-npm -v
+cd /path/to/laravel-lamp/src
 
-# 依存関係をインストール（初回のみ）
+# npm依存関係を再インストール（node_modulesに問題がある場合）
+rm -rf node_modules package-lock.json
 npm install
 
-# 本番用にビルド
-npm run build
+# 本番環境用にビルド（重要: APP_ENV=production を指定）
+APP_ENV=production npm run build
 ```
 
 ビルドが完了すると、`public/build/` ディレクトリにCSS/JavaScriptファイルが生成されます。
 
-### 2.3 ファイルの準備
-
-デプロイ前に以下を確認:
-
-```bash
-# ビルド済みファイルも含めてコミット
-git add .
-git commit -m "Prepare for production deployment"
-git push origin main
-```
-
-**注意**: `public/build/` ディレクトリも必ずコミットしてください。これがないとCSSやJavaScriptが読み込まれません。
+**重要な注意点**:
+- `public/hot` ファイルが存在すると、開発モードと判断されてVite開発サーバーに接続しようとします
+- ローカルで `npm run dev` が起動している場合は停止してください
+- ビルド後、`public/hot` ファイルが存在しないことを確認してください
 
 ## 3. サーバーへのデプロイ
 
-### 3.1 SSH接続
+### 3.1 rsyncでファイルをアップロード
+
+ローカル環境から、ログアウトした状態で実行します。
 
 ```bash
-# SSH接続（秘密鍵を使う場合）
-ssh -i /path/to/private_key your-account@your-server.xserver.jp
-
-# または、パスワード認証の場合
-ssh your-account@your-server.xserver.jp
+# 初回デプロイまたは全ファイル更新
+rsync -avz \
+  --exclude 'node_modules' \
+  --exclude '.git' \
+  --exclude 'storage/logs/*' \
+  --exclude 'tests' \
+  -e "ssh -i ~/.ssh/xserver.key -p 10022" \
+  /Users/yourname/src/laravel-lamp/src/ \
+  johncompany@sv16408.xserver.jp:~/arashiyama-cong-map.net/
 ```
 
-### 3.2 ディレクトリ構成の作成
+パスフレーズ（`johncompany`）を入力してアップロードが完了するまで待ちます。
+
+### 3.2 SSH接続してサーバー設定
 
 ```bash
-# ホームディレクトリに移動
-cd ~
-
-# Laravel用のディレクトリを作成
-mkdir -p arashiyama-event-app
-cd arashiyama-event-app
+ssh -i ~/.ssh/xserver.key -p 10022 johncompany@sv16408.xserver.jp
+cd ~/arashiyama-cong-map.net
 ```
 
-### 3.3 ファイルのアップロード
-
-#### 方法A: Git経由（推奨）
-
-```bash
-# GitHubからクローン
-git clone https://github.com/your-username/your-repo.git .
-
-# または、ローカルからプッシュしてクローン
-```
-
-#### 方法B: SFTP経由
-
-ローカルPCから:
-```bash
-# srcディレクトリの中身をアップロード
-scp -r ./src/* your-account@your-server.xserver.jp:~/arashiyama-event-app/
-```
-
-### 3.4 Composerのインストールと依存関係
-
-```bash
-cd ~/arashiyama-event-app
-
-# Composerをダウンロード
-curl -sS https://getcomposer.org/installer | php
-
-# 本番環境用に依存関係をインストール
-php composer.phar install --no-dev --optimize-autoloader
-```
-
-### 3.5 環境設定
+### 3.3 環境設定とComposerインストール
 
 ```bash
 # .envファイルを配置
 cp .env.arashiyama .env
 
-# または、ローカルから転送した.envをリネーム
+# Composer依存関係をインストール
+composer install --no-dev --optimize-autoloader
 
 # アプリケーションキーを生成
 php artisan key:generate
-
-# .envの内容を再確認
-nano .env
 ```
 
-### 3.6 パーミッション設定
-
-```bash
-chmod -R 775 storage
-chmod -R 775 bootstrap/cache
-```
-
-### 3.7 データベースのセットアップ
+### 3.4 データベースのセットアップ
 
 ```bash
 # マイグレーション実行
 php artisan migrate --force
-
-# 初期データ投入（必要に応じて）
-php artisan db:seed --force
 ```
 
-### 3.8 最適化
+### 3.5 パーミッション設定
 
 ```bash
-# キャッシュ生成
+chmod -R 775 storage bootstrap/cache
+```
+
+### 3.6 public_htmlの設定
+
+```bash
+# publicディレクトリの内容をpublic_htmlにコピー
+cp -r public/* public_html/
+
+# Laravelの.htaccessをコピー（エックスサーバーのキャッシュ設定も追加）
+cp public/.htaccess public_html/.htaccess
+
+# エックスサーバーのキャッシュ設定を追加
+cat >> public_html/.htaccess << 'EOF'
+
+# X-Server Cache Settings
+SetEnvIf Request_URI ".*" Ngx_Cache_NoCacheMode=off
+SetEnvIf Request_URI ".*" Ngx_Cache_AllCacheMode
+EOF
+```
+
+### 3.7 キャッシュクリアと最適化
+
+```bash
+# すべてのキャッシュをクリア
+php artisan optimize:clear
+
+# 設定をキャッシュ
 php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+
+# ビューキャッシュをクリア
+php artisan view:clear
 ```
 
-### 3.9 公開ディレクトリの設定
+### 3.8 重要: public/hotファイルの削除
 
 ```bash
-# ドメインのディレクトリに移動
-cd ~/arashiyama-cong-map.net/
+# 開発モード判定ファイルを削除（重要！）
+rm -f public/hot
 
-# 既存のpublic_htmlを削除（念のためバックアップ）
-mv public_html public_html.backup
-
-# Laravelのpublicフォルダへのシンボリックリンクを作成
-ln -s ~/arashiyama-event-app/public public_html
-
-# ストレージリンクの作成
-cd ~/arashiyama-event-app
-php artisan storage:link
+# 確認
+ls -la public/hot  # "そのようなファイルやディレクトリはありません" と表示されればOK
 ```
 
-### 3.10 .htaccessの配置
-
-```bash
-# エックスサーバー用の.htaccessを使用
-cd ~/arashiyama-event-app/public
-cp .htaccess.xserver .htaccess
-
-# または、既存の.htaccessに以下を追加
-nano .htaccess
-# 以下を先頭に追加:
-# AddHandler application/x-httpd-php8.3 .php
-```
+**このファイルが残っていると、ViteがローカルホストのURL（localhost:5173）を参照しようとしてCSSが読み込まれません。**
 
 ## 4. 動作確認
 
 ### 4.1 アクセステスト
 
 ブラウザで以下にアクセス:
-- https://arashiyama-cong-map.net
+```
+https://arashiyama-cong-map.net/
+```
 
-### 4.2 確認項目
+ログインページまたはダッシュボードが正常に表示され、CSSが適用されていることを確認してください。
 
-- [ ] トップページが表示される
-- [ ] HTTPSで接続できる（緑の鍵マーク）
-- [ ] 新規登録ができる
-- [ ] ログインができる
-- [ ] イベント一覧が表示される
-- [ ] 管理画面にアクセスできる
+### 4.2 CSSが適用されない場合のトラブルシューティング
 
-### 4.3 エラーが発生した場合
+ブラウザの開発者ツール（F12）のコンソールで以下のエラーが出ている場合：
+
+```
+Failed to load resource: net::ERR_CONNECTION_REFUSED
+http://localhost:5173/@vite/client
+```
+
+これは `public/hot` ファイルが残っているか、キャッシュが古い状態です。
+
+**解決方法:**
 
 ```bash
-# エラーログを確認
-tail -f ~/arashiyama-event-app/storage/logs/laravel.log
+# サーバーでpublic/hotを削除
+rm -f public/hot
 
 # キャッシュクリア
-cd ~/arashiyama-event-app
-php artisan cache:clear
-php artisan config:clear
+php artisan optimize:clear
+php artisan config:cache
 php artisan view:clear
 
-# 再度キャッシュ生成
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# 確認
+curl -s https://arashiyama-cong-map.net/ | grep -E "vite|script|link.*css" | head -5
 ```
+
+`localhost:5173` への参照がなく、`/build/assets/app-*.css` のような本番用のパスになっていればOKです。
+
+ブラウザで強制リロード（Cmd+Shift+R）してください。
+
+### 4.3 確認項目
+
+- [ ] トップページが表示される（CSSが適用されている）
+- [ ] HTTPSで接続できる
+- [ ] ログインページが表示される
+- [ ] 管理者でログインできる
 
 ## 5. 管理者アカウントの作成
 
-初回デプロイ後、管理者アカウントを作成:
+初回デプロイ後、管理者アカウントを作成します。
 
 ```bash
-cd ~/arashiyama-event-app
+cd ~/arashiyama-cong-map.net
 php artisan tinker
 ```
 
-Tinkerで以下を実行:
+Tinkerで以下を1行ずつ実行:
 
 ```php
 $user = new App\Models\User();
-$user->name = '管理者';
-$user->email = 'admin@arashiyama-cong-map.net';
-$user->password = bcrypt('secure-password-here');
-$user->is_admin = true;
+$user->name = 'Admin User';
+$user->email = 'admin@example.com';
+$user->password = bcrypt('password');
+$user->role = 'admin';
 $user->save();
+exit
 ```
 
-## 6. メンテナンス・更新方法
+ログイン情報:
+- Email: `admin@example.com`
+- Password: `password`
 
-### アプリケーションの更新
+**セキュリティ**: 本番運用前に強力なパスワードに変更してください。
+
+## 6. アプリケーション更新時の手順
+
+コードを変更した後、サーバーに反映する手順です。
+
+### 6.1 ローカルでビルド
 
 ```bash
-ssh your-account@your-server.xserver.jp
-cd ~/arashiyama-event-app
+cd /path/to/laravel-lamp/src
 
-# メンテナンスモード開始
-php artisan down
+# 本番用にビルド
+APP_ENV=production npm run build
 
-# 最新版を取得（Git使用の場合）
-git pull origin main
+# public/hotが存在しないことを確認
+ls public/hot  # エラーが出ればOK
+```
 
-# 依存関係を更新
-php composer.phar install --no-dev --optimize-autoloader
+### 6.2 変更ファイルのみアップロード
 
-# マイグレーション実行
-php artisan migrate --force
+全ファイルではなく、ビルドファイルのみアップロードする場合：
 
-# キャッシュクリア＆再生成
-php artisan config:clear
-php artisan cache:clear
+```bash
+# ビルドファイルのみアップロード
+rsync -avz \
+  -e "ssh -i ~/.ssh/xserver.key -p 10022" \
+  /Users/yourname/src/laravel-lamp/src/public/build/ \
+  johncompany@sv16408.xserver.jp:~/arashiyama-cong-map.net/public_html/build/
+```
+
+PHPコードやBladeファイルも変更した場合は、セクション3.1の全体アップロードを実行してください。
+
+### 6.3 サーバーでキャッシュクリア
+
+```bash
+ssh -i ~/.ssh/xserver.key -p 10022 johncompany@sv16408.xserver.jp
+cd ~/arashiyama-cong-map.net
+
+# public/hotを削除
+rm -f public/hot
+
+# キャッシュクリア
+php artisan optimize:clear
 php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+php artisan view:clear
 
-# メンテナンスモード終了
-php artisan up
+# マイグレーションがあれば実行
+php artisan migrate --force
 ```
 
-## 7. バックアップ
+## 7. トラブルシューティング
 
-### データベースバックアップ
+### CSS/JSが読み込まれない（ERR_CONNECTION_REFUSED）
 
+**症状**: ブラウザコンソールで `http://localhost:5173/@vite/client` へのエラー
+
+**原因**: `public/hot` ファイルが残っている
+
+**解決方法**:
 ```bash
-# mysqldumpでバックアップ
-mysqldump -h mysqlXXX.xserver.jp -u your_db_user -p arashiyama_events > ~/backups/db_backup_$(date +%Y%m%d_%H%M%S).sql
+# サーバー側
+rm -f public/hot
+php artisan optimize:clear
+
+# ローカル側（再ビルドする場合）
+rm -f public/hot
+APP_ENV=production npm run build
 ```
-
-### 定期バックアップの設定（cron）
-
-```bash
-# cron設定を編集
-crontab -e
-
-# 以下を追加（毎日午前3時にバックアップ）
-0 3 * * * mysqldump -h mysqlXXX.xserver.jp -u your_db_user -pyour_password arashiyama_events > ~/backups/db_backup_$(date +\%Y\%m\%d).sql
-```
-
-## トラブルシューティング
 
 ### 500 Internal Server Error
 
 ```bash
 # パーミッション確認
-chmod -R 775 ~/arashiyama-event-app/storage
-chmod -R 775 ~/arashiyama-event-app/bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
-# ログ確認
-tail -f ~/arashiyama-event-app/storage/logs/laravel.log
+# エラーログ確認
+tail -f storage/logs/laravel.log
 ```
-
-### CSS/JSが読み込まれない
-
-- ブラウザのキャッシュをクリア
-- シンボリックリンクを確認: `ls -la ~/arashiyama-cong-map.net/public_html`
-- .envのAPP_URLを確認: `https://arashiyama-cong-map.net`
 
 ### データベース接続エラー
 
-- .envのDB_*設定を再確認
-- エックスサーバーのサーバーパネルでホスト名を確認
-- データベースユーザーの権限を確認
+```bash
+# .env設定を確認
+cat .env | grep DB_
 
-## 完了！
+# 正しい設定:
+# DB_HOST=localhost（エックスサーバーの場合）
+# DB_DATABASE=johncompany_arashiyama
+# DB_USERNAME=johncompany_jwar
+# DB_PASSWORD=jw1914arashiyama
+```
 
-以上でデプロイは完了です。
+## 8. 重要なポイントまとめ
 
-問題が発生した場合は、DEPLOY.md の詳細なトラブルシューティングセクションも参照してください。
+1. **本番ビルドは必ず `APP_ENV=production` で実行**
+2. **`public/hot` ファイルは絶対にサーバーにアップロードしない**
+3. **デプロイ後は必ず `rm -f public/hot` を実行**
+4. **変更後はキャッシュクリア（`php artisan optimize:clear`）**
+5. **ブラウザの強制リロード（Cmd+Shift+R）で確認**
+
+## 完了
+
+以上でデプロイ手順は完了です。

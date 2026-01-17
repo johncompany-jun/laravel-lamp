@@ -327,6 +327,8 @@
         container.innerHTML = '';
 
         let index = 0;
+
+        // Add regular slot assignments
         assignments.forEach((data, slotId) => {
             // Add participants
             data.participants.forEach(userId => {
@@ -374,6 +376,31 @@
                 index++;
             }
         });
+
+        // Add special role assignments
+        specialAssignments.forEach((userIds, specialRole) => {
+            userIds.forEach(userId => {
+                const userInput = document.createElement('input');
+                userInput.type = 'hidden';
+                userInput.name = `assignments[${index}][user_id]`;
+                userInput.value = userId;
+                container.appendChild(userInput);
+
+                const roleInput = document.createElement('input');
+                roleInput.type = 'hidden';
+                roleInput.name = `assignments[${index}][role]`;
+                roleInput.value = 'participant';
+                container.appendChild(roleInput);
+
+                const specialRoleInput = document.createElement('input');
+                specialRoleInput.type = 'hidden';
+                specialRoleInput.name = `assignments[${index}][special_role]`;
+                specialRoleInput.value = specialRole;
+                container.appendChild(specialRoleInput);
+
+                index++;
+            });
+        });
     }
 
     function updateAssignmentCount() {
@@ -381,9 +408,182 @@
         assignments.forEach(data => {
             total += data.participants.length + (data.leader ? 1 : 0);
         });
+        // Add special assignments count
+        if (typeof specialAssignments !== 'undefined') {
+            specialAssignments.forEach((userIds) => {
+                total += userIds.length;
+            });
+        }
         document.getElementById('assignedCount').textContent = total;
     }
 
-    // Initial update
+    // Special role assignments: { 'setup': [userId1, userId2], 'cleanup': [userId1, userId2], ... }
+    const specialAssignments = new Map();
+    let currentSpecialRole = null;
+    let currentSpecialCell = null;
+
+    // Initialize special assignment arrays
+    specialAssignments.set('setup', []);
+    specialAssignments.set('cleanup', []);
+    specialAssignments.set('transport_first', []);
+    specialAssignments.set('transport_second', []);
+
+    // Load existing special assignments
+    @foreach($existingSpecialAssignments as $assignment)
+        @php
+            $specialRole = $assignment->special_role;
+            $userId = $assignment->user_id;
+        @endphp
+        @if($specialRole)
+            if (specialAssignments.has('{{ $specialRole }}')) {
+                specialAssignments.get('{{ $specialRole }}').push({{ $userId }});
+            }
+        @endif
+    @endforeach
+
+    // Update display for existing special assignments
+    specialAssignments.forEach((userIds, role) => {
+        updateSpecialCellDisplay(role);
+    });
+
+    // Initial update of assignment count
     updateAssignmentCount();
+
+    function openSpecialRoleModal(cell) {
+        currentSpecialCell = cell;
+        currentSpecialRole = cell.dataset.specialRole;
+
+        const currentUserIds = specialAssignments.get(currentSpecialRole) || [];
+
+        // Update modal title
+        const roleNames = {
+            'setup': '準備',
+            'cleanup': '片付け',
+            'transport_first': '車運搬前半',
+            'transport_second': '車運搬後半'
+        };
+        document.getElementById('modalTitle').textContent = roleNames[currentSpecialRole] || currentSpecialRole;
+
+        // Hide capacity indicator for special roles
+        document.getElementById('capacityIndicator').style.display = 'none';
+
+        // Filter users based on special role
+        let filteredUsers = [];
+        switch (currentSpecialRole) {
+            case 'setup':
+                filteredUsers = availableUsers.filter(u => u.can_help_setup);
+                break;
+            case 'cleanup':
+                filteredUsers = availableUsers.filter(u => u.can_help_cleanup);
+                break;
+            case 'transport_first':
+            case 'transport_second':
+                filteredUsers = availableUsers.filter(u => u.can_transport_by_car);
+                break;
+        }
+
+        // Populate participants list with filtered users (checkbox for multiple selection)
+        const participantsList = document.getElementById('participantsList');
+        participantsList.innerHTML = '';
+
+        if (filteredUsers.length === 0) {
+            participantsList.innerHTML = '<p style="color: #9CA3AF; padding: 12px;">該当するスキルを持つユーザーがいません</p>';
+        } else {
+            filteredUsers.forEach(user => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
+
+                let badges = '';
+                if (user.can_help_setup) {
+                    badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #DBEAFE; color: #1E40AF; border-radius: 3px; margin-left: 4px; font-weight: 600;">準備</span>';
+                }
+                if (user.can_help_cleanup) {
+                    badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #FEF3C7; color: #92400E; border-radius: 3px; margin-left: 4px; font-weight: 600;">片付</span>';
+                }
+                if (user.can_transport_by_car) {
+                    badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #E9D5FF; color: #6B21A8; border-radius: 3px; margin-left: 4px; font-weight: 600;">車運搬</span>';
+                }
+
+                div.innerHTML = `
+                    <input type="checkbox" name="special-user" value="${user.id}" id="special-user-${user.id}"
+                        ${currentUserIds.includes(user.id) ? 'checked' : ''}
+                        class="special-user-radio"
+                        style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;">
+                    <label for="special-user-${user.id}" style="cursor: pointer; flex: 1;">${user.name}${badges}</label>
+                `;
+                participantsList.appendChild(div);
+            });
+        }
+
+        // Hide leaders list for special roles
+        document.getElementById('leadersList').parentElement.style.display = 'none';
+
+        const modal = document.getElementById('assignmentModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
+
+        // Override the save button to use special save function
+        const saveBtn = modal.querySelector('button[onclick="saveAssignment()"]');
+        if (saveBtn) {
+            saveBtn.setAttribute('onclick', 'saveSpecialAssignment()');
+        }
+    }
+
+    function saveSpecialAssignment() {
+        if (!currentSpecialRole) return;
+
+        // Get all selected users
+        const selectedCheckboxes = document.querySelectorAll('input[name="special-user"]:checked');
+        const selectedUserIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+
+        // Update the specialAssignments map
+        specialAssignments.set(currentSpecialRole, selectedUserIds);
+        updateSpecialCellDisplay(currentSpecialRole);
+
+        // Update hidden inputs
+        updateAssignmentInputs();
+        updateAssignmentCount();
+
+        // Reset modal state
+        document.getElementById('capacityIndicator').style.display = 'block';
+        document.getElementById('leadersList').parentElement.style.display = 'block';
+        const saveBtn = document.querySelector('button[onclick="saveSpecialAssignment()"]');
+        if (saveBtn) {
+            saveBtn.setAttribute('onclick', 'saveAssignment()');
+        }
+
+        closeAssignmentModal();
+    }
+
+    function updateSpecialCellDisplay(role) {
+        const cell = document.getElementById(`special-cell-${role}`);
+        if (!cell) return;
+
+        const userIds = specialAssignments.get(role) || [];
+
+        if (userIds.length === 0) {
+            cell.innerHTML = '<span class="text-gray-400 text-sm">クリックして選択</span>';
+            return;
+        }
+
+        let html = '<div style="display: flex; flex-wrap: wrap; gap: 6px;">';
+        userIds.forEach(userId => {
+            const user = availableUsers.find(u => u.id === userId);
+            if (user) {
+                let badges = '';
+                if (user.can_help_setup) {
+                    badges += ' <span style="font-size: 9px; padding: 1px 4px; background-color: #DBEAFE; color: #1E40AF; border-radius: 2px; margin-left: 2px; font-weight: 600;">準備</span>';
+                }
+                if (user.can_help_cleanup) {
+                    badges += ' <span style="font-size: 9px; padding: 1px 4px; background-color: #FEF3C7; color: #92400E; border-radius: 2px; margin-left: 2px; font-weight: 600;">片付</span>';
+                }
+                if (user.can_transport_by_car) {
+                    badges += ' <span style="font-size: 9px; padding: 1px 4px; background-color: #E9D5FF; color: #6B21A8; border-radius: 2px; margin-left: 2px; font-weight: 600;">車運搬</span>';
+                }
+                html += `<span style="display: inline-block; padding: 5px 10px; background-color: #D1FAE5; color: #065F46; border-radius: 4px; font-size: 12px; font-weight: 500;">${user.name}${badges}</span>`;
+            }
+        });
+        html += '</div>';
+        cell.innerHTML = html;
+    }
 </script>

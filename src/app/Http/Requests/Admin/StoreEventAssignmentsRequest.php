@@ -25,9 +25,10 @@ class StoreEventAssignmentsRequest extends FormRequest
     {
         return [
             'assignments' => 'nullable|array',
-            'assignments.*.slot_id' => 'required|exists:event_slots,id',
+            'assignments.*.slot_id' => 'nullable|exists:event_slots,id',
             'assignments.*.user_id' => 'required|exists:users,id',
             'assignments.*.role' => 'required|in:participant,leader',
+            'assignments.*.special_role' => 'nullable|in:setup,cleanup,transport_first,transport_second',
         ];
     }
 
@@ -39,10 +40,23 @@ class StoreEventAssignmentsRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $assignments = $this->input('assignments', []);
 
-            // スロットごとの割り当て人数を集計
-            $slotCounts = [];
+            // Separate regular and special assignments
+            $regularAssignments = [];
+            $specialAssignments = [];
             foreach ($assignments as $assignment) {
-                $slotId = $assignment['slot_id'];
+                if (!empty($assignment['special_role'])) {
+                    $specialAssignments[] = $assignment;
+                } else {
+                    $regularAssignments[] = $assignment;
+                }
+            }
+
+            // スロットごとの割り当て人数を集計（通常のアサインのみ）
+            $slotCounts = [];
+            foreach ($regularAssignments as $assignment) {
+                $slotId = $assignment['slot_id'] ?? null;
+                if (!$slotId) continue;
+
                 if (!isset($slotCounts[$slotId])) {
                     $slotCounts[$slotId] = 0;
                 }
@@ -62,8 +76,11 @@ class StoreEventAssignmentsRequest extends FormRequest
 
             // 同じ時間帯に同じユーザーが複数の場所にアサインされていないかチェック
             $userTimeSlots = [];
-            foreach ($assignments as $assignment) {
-                $slot = EventSlot::find($assignment['slot_id']);
+            foreach ($regularAssignments as $assignment) {
+                $slotId = $assignment['slot_id'] ?? null;
+                if (!$slotId) continue;
+
+                $slot = EventSlot::find($slotId);
                 if (!$slot) continue;
 
                 $userId = $assignment['user_id'];
@@ -83,6 +100,40 @@ class StoreEventAssignmentsRequest extends FormRequest
                     );
                 } else {
                     $userTimeSlots[$userId][$timeKey] = $slot;
+                }
+            }
+
+            // 特殊役割の定員チェック
+            $specialRoleCounts = [];
+            foreach ($specialAssignments as $assignment) {
+                $role = $assignment['special_role'];
+                if (!isset($specialRoleCounts[$role])) {
+                    $specialRoleCounts[$role] = 0;
+                }
+                $specialRoleCounts[$role]++;
+            }
+
+            $specialRoleLimits = [
+                'setup' => 2,
+                'cleanup' => 2,
+                'transport_first' => 1,
+                'transport_second' => 1,
+            ];
+
+            $roleNames = [
+                'setup' => '準備',
+                'cleanup' => '片付け',
+                'transport_first' => '車運搬前半',
+                'transport_second' => '車運搬後半',
+            ];
+
+            foreach ($specialRoleCounts as $role => $count) {
+                $limit = $specialRoleLimits[$role] ?? 0;
+                if ($count > $limit) {
+                    $validator->errors()->add(
+                        'assignments',
+                        "「{$roleNames[$role]}」の定員は{$limit}人ですが、{$count}人が割り当てられています。"
+                    );
                 }
             }
         });

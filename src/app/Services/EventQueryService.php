@@ -104,6 +104,17 @@ class EventQueryService
     }
 
     /**
+     * Get existing special role assignments for an event.
+     */
+    public function getExistingSpecialAssignments(Event $event): Collection
+    {
+        return EventAssignment::where('event_id', $event->id)
+            ->whereNotNull('special_role')
+            ->with(['user'])
+            ->get();
+    }
+
+    /**
      * Prepare assignment data for the create assignments page.
      */
     public function prepareAssignmentData(Event $event): array

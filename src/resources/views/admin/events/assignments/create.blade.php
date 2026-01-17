@@ -151,6 +151,61 @@
                             </table>
                         </div>
 
+                        <!-- Special Role Assignments -->
+                        <div class="mt-8 pt-8 border-t-2 border-gray-300">
+                            <h4 class="text-lg font-semibold mb-4">準備と運搬</h4>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- Setup Section -->
+                                <div>
+                                    <h5 class="text-md font-semibold mb-2 text-gray-700">準備 (2人)</h5>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                                         data-special-role="setup"
+                                         onclick="openSpecialRoleModal(this)">
+                                        <div class="min-h-[80px] special-assignment-cell" id="special-cell-setup">
+                                            <span class="text-gray-400 text-sm">クリックして選択</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cleanup Section -->
+                                <div>
+                                    <h5 class="text-md font-semibold mb-2 text-gray-700">片付け (2人)</h5>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                                         data-special-role="cleanup"
+                                         onclick="openSpecialRoleModal(this)">
+                                        <div class="min-h-[80px] special-assignment-cell" id="special-cell-cleanup">
+                                            <span class="text-gray-400 text-sm">クリックして選択</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Transport First Half Section -->
+                                <div>
+                                    <h5 class="text-md font-semibold mb-2 text-gray-700">車運搬前半 (1人)</h5>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                                         data-special-role="transport_first"
+                                         onclick="openSpecialRoleModal(this)">
+                                        <div class="min-h-[80px] special-assignment-cell" id="special-cell-transport_first">
+                                            <span class="text-gray-400 text-sm">クリックして選択</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Transport Second Half Section -->
+                                <div>
+                                    <h5 class="text-md font-semibold mb-2 text-gray-700">車運搬後半 (1人)</h5>
+                                    <div class="border border-gray-300 rounded-lg p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
+                                         data-special-role="transport_second"
+                                         onclick="openSpecialRoleModal(this)">
+                                        <div class="min-h-[80px] special-assignment-cell" id="special-cell-transport_second">
+                                            <span class="text-gray-400 text-sm">クリックして選択</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mt-6 flex justify-between items-center">
                             <div id="assignmentCount" class="text-sm text-gray-600">
                                 <span class="font-semibold" id="assignedCount">0</span> {{ __('events.assignments_created') }}

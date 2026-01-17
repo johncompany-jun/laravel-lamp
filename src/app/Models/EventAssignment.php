@@ -15,6 +15,7 @@ class EventAssignment extends Model
         'event_slot_id',
         'user_id',
         'role',
+        'special_role',
         'assigned_by',
     ];
 

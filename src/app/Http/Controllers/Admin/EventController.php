@@ -109,13 +109,14 @@ class EventController extends Controller
         $event = $this->queryService->getEventWithSlotsAndApplications($event);
         $applications = $this->queryService->getApplicationsGroupedByUser($event);
         $existingAssignments = $this->queryService->getExistingAssignments($event);
+        $existingSpecialAssignments = $this->queryService->getExistingSpecialAssignments($event);
 
         // Prepare assignment data using service
         $assignmentData = $this->queryService->prepareAssignmentData($event);
         $availableUsers = $this->queryService->prepareAvailableUsers($applications);
 
         return view('admin.events.assignments.create', array_merge(
-            compact('event', 'applications', 'existingAssignments', 'availableUsers'),
+            compact('event', 'applications', 'existingAssignments', 'existingSpecialAssignments', 'availableUsers'),
             $assignmentData
         ));
     }

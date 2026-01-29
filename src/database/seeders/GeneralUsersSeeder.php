@@ -38,7 +38,7 @@ class GeneralUsersSeeder extends Seeder
                 $users[] = [
                     'name' => $name,
                     'email' => $email,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make('Gosho0059'),
                     'role' => 'user',
                     'email_verified_at' => now(),
                     'created_at' => now(),
@@ -53,6 +53,6 @@ class GeneralUsersSeeder extends Seeder
 
         $this->command->info('30人の一般ユーザーを作成しました。');
         $this->command->info('メールアドレス: user1@example.com 〜 user30@example.com');
-        $this->command->info('パスワード: password');
+        $this->command->info('パスワード: Gosho0059');
     }
 }

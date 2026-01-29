@@ -34,6 +34,7 @@ class RecurringEventService
         $recurringEvent->event_date = $date->format('Y-m-d');
         $recurringEvent->parent_event_id = $parentEvent->id;
         $recurringEvent->is_recurring = false;
+        $recurringEvent->is_template = false;
         $recurringEvent->recurrence_type = null;
         $recurringEvent->recurrence_end_date = null;
         $recurringEvent->save();

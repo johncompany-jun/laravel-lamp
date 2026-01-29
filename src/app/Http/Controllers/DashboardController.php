@@ -14,8 +14,9 @@ class DashboardController extends Controller
         $user = auth()->user();
 
         // Get open events (events accepting applications)
+        // Include both parent events and child events (recurring events)
         $openEvents = Event::where('status', EventStatus::OPEN)
-            ->whereNull('parent_event_id')
+            ->where('is_template', false)
             ->where('event_date', '>=', today())
             ->orderBy('event_date')
             ->limit(5)

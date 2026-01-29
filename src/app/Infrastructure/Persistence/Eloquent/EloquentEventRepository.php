@@ -43,11 +43,12 @@ class EloquentEventRepository implements EventRepositoryInterface
 
     /**
      * 募集中のイベントを取得（ページネーション）
+     * 子イベント（繰り返しイベント）も含む、テンプレートは除外
      */
     public function getOpenEvents(int $perPage = 10): LengthAwarePaginator
     {
         return Event::where('status', EventStatus::OPEN)
-            ->whereNull('parent_event_id')
+            ->where('is_template', false)
             ->where('event_date', '>=', today())
             ->orderBy('event_date')
             ->paginate($perPage);

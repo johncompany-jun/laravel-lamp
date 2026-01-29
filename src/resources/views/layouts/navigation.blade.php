@@ -19,14 +19,14 @@
                         <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                             {{ __('Schedule') }}
                         </x-nav-link>
-                    @else
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                            {{ __('Dashboard') }}
-                        </x-nav-link>
-                        <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                            {{ __('Events') }}
-                        </x-nav-link>
                     @endif
+
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        {{ __('Dashboard') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                        {{ __('Events') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -86,14 +86,14 @@
                 <x-responsive-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                     {{ __('Schedule') }}
                 </x-responsive-nav-link>
-            @else
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Dashboard') }}
-                </x-responsive-nav-link>
-                <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                    {{ __('Events') }}
-                </x-responsive-nav-link>
             @endif
+
+            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                {{ __('Events') }}
+            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->

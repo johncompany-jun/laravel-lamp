@@ -101,6 +101,7 @@ rsync -avz \
   --exclude 'storage/logs/*' \
   --exclude 'tests' \
   --exclude 'public' \
+  --exclude '.env' \
   -e "ssh -i ~/.ssh/johncompany.key -p 10022" \
   ./src/ \
   johncompany@sv16408.xserver.jp:~/goshocong-map.com/pw/
@@ -213,6 +214,7 @@ rsync -avz \
   --exclude 'storage/logs/*' \
   --exclude 'tests' \
   --exclude 'public' \
+  --exclude '.env' \
   -e "ssh -i ~/.ssh/johncompany.key -p 10022" \
   ./src/ \
   johncompany@sv16408.xserver.jp:~/goshocong-map.com/pw/

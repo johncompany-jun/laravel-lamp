@@ -38,7 +38,7 @@ class StoreEventAssignmentsRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $assignments = $this->input('assignments', []);
+            $assignments = $this->input('assignments') ?? [];
 
             // Separate regular and special assignments
             $regularAssignments = [];

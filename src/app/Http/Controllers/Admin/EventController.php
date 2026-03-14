@@ -128,7 +128,7 @@ class EventController extends Controller
     {
         $validated = $request->validated();
 
-        $this->storeAssignmentsUseCase->execute($event, $validated['assignments']);
+        $this->storeAssignmentsUseCase->execute($event, $validated['assignments'] ?? []);
 
         return redirect()->route('admin.events.index')
             ->with('success', 'Assignments created successfully!');

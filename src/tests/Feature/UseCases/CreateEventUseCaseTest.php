@@ -35,8 +35,8 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '16:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
             'location' => 'Test Location',
             'notes' => 'Test notes',
@@ -70,9 +70,10 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '14:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
+            'location' => '',
             'locations' => ['北西', '北東', '南側'],
         ];
 
@@ -100,9 +101,10 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '14:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
+            'location' => '',
             'locations' => ['北西', '', '北東', null],
         ];
 
@@ -128,9 +130,10 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '14:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
+            'location' => '',
             'is_recurring' => true,
             'recurrence_type' => 'weekly',
             'recurrence_end_date' => $endDate->format('Y-m-d'),
@@ -166,9 +169,10 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '14:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
+            'location' => '',
             'is_template' => true,
         ];
 
@@ -196,9 +200,10 @@ class CreateEventUseCaseTest extends TestCase
             'start_time' => '13:00',
             'end_time' => '16:00',
             'status' => EventStatus::DRAFT->value,
-            'application_slot_duration' => ApplicationSlotDuration::MINUTES_60->value,
-            'slot_duration' => AssignmentSlotDuration::MINUTES_20->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
             'created_by' => $user->id,
+            'location' => '',
         ];
 
         // Execute
@@ -209,5 +214,129 @@ class CreateEventUseCaseTest extends TestCase
 
         // Application slots: 3 hours with 60-minute slots = 3 slots
         $this->assertEquals(3, $event->applicationSlots()->count());
+    }
+
+    /** @test */
+    public function it_generates_slots_for_child_recurring_events()
+    {
+        // Prepare
+        $user = User::factory()->create();
+
+        $startDate = now()->addDays(7);
+        $endDate = $startDate->copy()->addWeeks(2);
+
+        $data = [
+            'title' => 'Recurring Event With Slots',
+            'event_date' => $startDate->format('Y-m-d'),
+            'start_time' => '13:00',
+            'end_time' => '14:00',
+            'status' => EventStatus::DRAFT->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
+            'created_by' => $user->id,
+            'location' => '',
+            'is_recurring' => true,
+            'recurrence_type' => 'weekly',
+            'recurrence_end_date' => $endDate->format('Y-m-d'),
+        ];
+
+        // Execute
+        $event = $this->useCase->execute($data);
+
+        // Assert - each child event should have slots generated
+        foreach ($event->childEvents as $childEvent) {
+            $this->assertGreaterThan(0, $childEvent->slots()->count());
+            $this->assertGreaterThan(0, $childEvent->applicationSlots()->count());
+        }
+    }
+
+    /** @test */
+    public function it_sets_correct_parent_event_id_on_child_events()
+    {
+        // Prepare
+        $user = User::factory()->create();
+
+        $startDate = now()->addDays(7);
+        $endDate = $startDate->copy()->addWeeks(2);
+
+        $data = [
+            'title' => 'Recurring Event Parent Check',
+            'event_date' => $startDate->format('Y-m-d'),
+            'start_time' => '13:00',
+            'end_time' => '14:00',
+            'status' => EventStatus::DRAFT->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
+            'created_by' => $user->id,
+            'location' => '',
+            'is_recurring' => true,
+            'recurrence_type' => 'weekly',
+            'recurrence_end_date' => $endDate->format('Y-m-d'),
+        ];
+
+        // Execute
+        $event = $this->useCase->execute($data);
+
+        // Assert - all child events should have parent_event_id set correctly
+        foreach ($event->childEvents as $childEvent) {
+            $this->assertEquals($event->id, $childEvent->parent_event_id);
+            $this->assertFalse((bool) $childEvent->is_recurring);
+        }
+    }
+
+    /** @test */
+    public function it_does_not_create_child_events_when_recurrence_type_is_not_weekly()
+    {
+        // Prepare
+        $user = User::factory()->create();
+
+        $startDate = now()->addDays(7);
+
+        $data = [
+            'title' => 'Non-Weekly Recurring Event',
+            'event_date' => $startDate->format('Y-m-d'),
+            'start_time' => '13:00',
+            'end_time' => '14:00',
+            'status' => EventStatus::DRAFT->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
+            'created_by' => $user->id,
+            'location' => '',
+            'is_recurring' => true,
+            'recurrence_type' => 'monthly',
+            'recurrence_end_date' => $startDate->copy()->addMonths(3)->format('Y-m-d'),
+        ];
+
+        // Execute
+        $event = $this->useCase->execute($data);
+
+        // Assert - no child events should be created for non-weekly recurrence
+        $this->assertEquals(0, $event->childEvents()->count());
+    }
+
+    /** @test */
+    public function it_does_not_create_child_events_when_is_recurring_is_false()
+    {
+        // Prepare
+        $user = User::factory()->create();
+
+        $data = [
+            'title' => 'Non-Recurring Event',
+            'event_date' => now()->addDays(7)->format('Y-m-d'),
+            'start_time' => '13:00',
+            'end_time' => '14:00',
+            'status' => EventStatus::DRAFT->value,
+            'application_slot_duration' => ApplicationSlotDuration::ONE_HOUR->value,
+            'slot_duration' => AssignmentSlotDuration::TWENTY_MINUTES->value,
+            'created_by' => $user->id,
+            'location' => '',
+            'is_recurring' => false,
+        ];
+
+        // Execute
+        $event = $this->useCase->execute($data);
+
+        // Assert
+        $this->assertEquals(0, $event->childEvents()->count());
     }
 }

@@ -51,6 +51,26 @@ class StoreEventAssignmentsRequest extends FormRequest
                 }
             }
 
+            // 同じスロットに同じユーザーが重複していないかチェック
+            $slotUserKeys = [];
+            foreach ($regularAssignments as $assignment) {
+                $slotId = $assignment['slot_id'] ?? null;
+                $userId = $assignment['user_id'] ?? null;
+                if (!$slotId || !$userId) continue;
+
+                $key = $slotId . '-' . $userId;
+                if (isset($slotUserKeys[$key])) {
+                    $slot = EventSlot::find($slotId);
+                    $user = \App\Models\User::find($userId);
+                    $validator->errors()->add(
+                        'assignments',
+                        $user->name . "さんは同じスロット " . substr($slot->start_time, 0, 5) . " - " . substr($slot->end_time, 0, 5) . " " . $slot->location . " に重複してアサインされています。"
+                    );
+                } else {
+                    $slotUserKeys[$key] = true;
+                }
+            }
+
             // スロットごとの割り当て人数を集計（通常のアサインのみ）
             $slotCounts = [];
             foreach ($regularAssignments as $assignment) {
@@ -69,7 +89,7 @@ class StoreEventAssignmentsRequest extends FormRequest
                 if ($slot && $count > $slot->capacity) {
                     $validator->errors()->add(
                         'assignments',
-                        "スロット「{$slot->start_time} - {$slot->end_time} ({$slot->location})」の定員は{$slot->capacity}人ですが、{$count}人が割り当てられています。"
+                        "スロット " . substr($slot->start_time, 0, 5) . " - " . substr($slot->end_time, 0, 5) . " " . $slot->location . " の定員は" . $slot->capacity . "人ですが、" . $count . "人が割り当てられています。"
                     );
                 }
             }
@@ -96,7 +116,7 @@ class StoreEventAssignmentsRequest extends FormRequest
                     $user = \App\Models\User::find($userId);
                     $validator->errors()->add(
                         'assignments',
-                        "{$user->name}さんは、{$slot->start_time} - {$slot->end_time}の時間帯に既に「{$previousSlot->location}」にアサインされています。同じ時間帯に複数の場所にアサインすることはできません。"
+                        $user->name . "さんは、" . substr($slot->start_time, 0, 5) . " - " . substr($slot->end_time, 0, 5) . "の時間帯に既に" . $previousSlot->location . "にアサインされています。同じ時間帯に複数の場所にアサインすることはできません。"
                     );
                 } else {
                     $userTimeSlots[$userId][$timeKey] = $slot;

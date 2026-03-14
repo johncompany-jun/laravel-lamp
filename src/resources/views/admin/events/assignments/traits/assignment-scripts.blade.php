@@ -102,7 +102,8 @@
         availableUsers.forEach(user => {
             const isAssignedElsewhere = usersAssignedAtSameTime.has(user.id);
             const isCurrentlyAssigned = currentAssignment.participants.includes(user.id);
-            const isDisabled = isAssignedElsewhere && !isCurrentlyAssigned;
+            const isLeader = currentAssignment.leader === user.id;
+            const isDisabled = (isAssignedElsewhere && !isCurrentlyAssigned) || isLeader;
 
             const div = document.createElement('div');
             div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
@@ -122,7 +123,10 @@
                 badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #E9D5FF; color: #6B21A8; border-radius: 3px; margin-left: 4px; font-weight: 600;">車運搬</span>';
             }
 
-            if (isDisabled) {
+            if (isLeader) {
+                labelStyle += ' color: #9CA3AF;';
+                warningText = ` <span style="font-size: 11px; color: #EF4444;">(見守りとして選択中)</span>`;
+            } else if (isDisabled) {
                 labelStyle += ' color: #9CA3AF;';
                 const assignedLocation = usersAssignedAtSameTime.get(user.id);
                 warningText = ` <span style="font-size: 11px; color: #EF4444;">(${assignedLocation}にアサイン済み)</span>`;
@@ -130,6 +134,7 @@
 
             div.innerHTML = `
                 <input type="checkbox" id="participant-${user.id}" value="${user.id}"
+                    data-user-id="${user.id}"
                     ${isCurrentlyAssigned ? 'checked' : ''}
                     ${isDisabled ? 'disabled' : ''}
                     class="participant-checkbox"
@@ -141,9 +146,17 @@
 
         // Add event listeners to checkboxes
         document.querySelectorAll('.participant-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', () => {
+            checkbox.addEventListener('change', (e) => {
                 const tempAssignment = getCurrentModalAssignment();
                 updateCapacityIndicator(tempAssignment);
+
+                // 参加者にチェックしたら見守りラジオを無効化、外したら有効化
+                const userId = e.target.dataset.userId;
+                const leaderRadio = document.querySelector(`.leader-radio[data-user-id="${userId}"]`);
+                if (leaderRadio) {
+                    const isAssignedElsewhere = usersAssignedAtSameTime.has(parseInt(userId));
+                    leaderRadio.disabled = e.target.checked || (isAssignedElsewhere && !leaderRadio.checked);
+                }
             });
         });
 
@@ -167,7 +180,8 @@
         availableUsers.forEach(user => {
             const isAssignedElsewhere = usersAssignedAtSameTime.has(user.id);
             const isCurrentlyAssigned = currentAssignment.leader === user.id;
-            const isDisabled = isAssignedElsewhere && !isCurrentlyAssigned;
+            const isParticipant = currentAssignment.participants.includes(user.id);
+            const isDisabled = (isAssignedElsewhere && !isCurrentlyAssigned) || isParticipant;
 
             const div = document.createElement('div');
             div.style.cssText = 'display: flex; align-items: center; padding: 8px 0;';
@@ -187,7 +201,10 @@
                 badges += ' <span style="font-size: 10px; padding: 2px 6px; background-color: #E9D5FF; color: #6B21A8; border-radius: 3px; margin-left: 4px; font-weight: 600;">車運搬</span>';
             }
 
-            if (isDisabled) {
+            if (isParticipant) {
+                labelStyle += ' color: #9CA3AF;';
+                warningText = ` <span style="font-size: 11px; color: #EF4444;">(参加者として選択中)</span>`;
+            } else if (isDisabled) {
                 labelStyle += ' color: #9CA3AF;';
                 const assignedLocation = usersAssignedAtSameTime.get(user.id);
                 warningText = ` <span style="font-size: 11px; color: #EF4444;">(${assignedLocation}にアサイン済み)</span>`;
@@ -195,6 +212,7 @@
 
             div.innerHTML = `
                 <input type="radio" name="leader" value="${user.id}" id="leader-${user.id}"
+                    data-user-id="${user.id}"
                     ${isCurrentlyAssigned ? 'checked' : ''}
                     ${isDisabled ? 'disabled' : ''}
                     class="leader-radio"
@@ -209,6 +227,13 @@
             radio.addEventListener('change', () => {
                 const tempAssignment = getCurrentModalAssignment();
                 updateCapacityIndicator(tempAssignment);
+
+                // 見守りを選んだら対象の参加者チェックボックスを無効化、外したら有効化
+                document.querySelectorAll('.participant-checkbox[data-user-id]').forEach(cb => {
+                    const userId = parseInt(cb.dataset.userId);
+                    const isAssignedElsewhere = usersAssignedAtSameTime.has(userId);
+                    cb.disabled = (tempAssignment.leader === userId) || (isAssignedElsewhere && !cb.checked);
+                });
             });
         });
 

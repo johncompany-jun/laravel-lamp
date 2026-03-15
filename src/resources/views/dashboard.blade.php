@@ -26,7 +26,7 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($myAssignments as $assignment)
-                                        <tr class="{{ $assignment->event->status === App\Enums\EventStatus::COMPLETED ? 'border-l-4 border-red-500' : '' }}">
+                                        <tr class="{{ $assignment->event->status === App\Enums\EventStatus::CANCELLED ? 'border-l-4 border-red-500' : '' }}">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <a href="{{ route('events.assignments.view', $assignment->event) }}" class="text-indigo-600 hover:text-indigo-900 hover:underline">
                                                     {{ $assignment->event->title }}
@@ -42,7 +42,7 @@
                                                 {{ $assignment->slot->location ?? __('dashboard.n_a') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                @if($assignment->event->status === App\Enums\EventStatus::COMPLETED)
+                                                @if($assignment->event->status === App\Enums\EventStatus::CANCELLED)
                                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-600 text-white">
                                                         {{ __('dashboard.event_cancelled') }}
                                                     </span>

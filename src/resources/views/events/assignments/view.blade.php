@@ -17,7 +17,7 @@
                 <div class="p-6 text-gray-900">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold">{{ __('events.event_details') }}</h3>
-                        @if($event->status === App\Enums\EventStatus::COMPLETED)
+                        @if($event->status === App\Enums\EventStatus::CANCELLED)
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                                 {{ __('dashboard.event_cancelled') }}
                             </span>
@@ -41,7 +41,7 @@
                             <p class="font-medium">{{ !empty($event->locations) ? implode(', ', $event->locations) : __('events.not_set') }}</p>
                         </div>
                     </div>
-                    @if($event->status === App\Enums\EventStatus::COMPLETED)
+                    @if($event->status === App\Enums\EventStatus::CANCELLED)
                         <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
                             <p class="text-red-700 font-bold text-lg">このPWイベントは中止になりました</p>
                         </div>

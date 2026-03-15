@@ -7,7 +7,7 @@ enum EventStatus: string
     case DRAFT = 'draft';
     case OPEN = 'open';
     case CLOSED = 'closed';
-    case COMPLETED = 'completed';
+    case CANCELLED = 'cancelled';
 
     /**
      * Get all enum values.
@@ -26,7 +26,7 @@ enum EventStatus: string
             self::DRAFT     => 'events.draft',
             self::OPEN      => 'events.open',
             self::CLOSED    => 'events.closed',
-            self::COMPLETED => 'events.completed',
+            self::CANCELLED => 'events.cancelled',
         };
     }
 

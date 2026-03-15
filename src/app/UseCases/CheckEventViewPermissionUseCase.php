@@ -17,7 +17,7 @@ use App\Models\User;
  *   - ユーザーがアサイン済み
  *
  * 閲覧できない条件:
- *   - イベントが COMPLETED 状態
+ *   - イベントが CANCELLED 状態
  */
 final class CheckEventViewPermissionUseCase
 {
@@ -31,7 +31,7 @@ final class CheckEventViewPermissionUseCase
      */
     public function execute(Event $event, User $user): void
     {
-        if ($event->status === EventStatus::COMPLETED) {
+        if ($event->status === EventStatus::CANCELLED) {
             abort(404);
         }
 

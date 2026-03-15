@@ -75,8 +75,8 @@ class UpdateEventUseCase
             }
         }
 
-        // When status changes to 'completed' (cancelled), send email to all applicants
-        if ($newStatus === 'completed') {
+        // When status changes to 'cancelled', send email to all applicants
+        if ($newStatus === 'cancelled') {
             $applicants = $event->applications()
                 ->with('user')
                 ->get()

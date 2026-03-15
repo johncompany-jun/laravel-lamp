@@ -25,7 +25,7 @@ class DashboardController extends Controller
 
         $myAssignments = $this->assignmentRepository->getUpcomingForUser(
             $user,
-            [EventStatus::CLOSED, EventStatus::COMPLETED],
+            [EventStatus::CLOSED, EventStatus::CANCELLED],
             5
         );
 

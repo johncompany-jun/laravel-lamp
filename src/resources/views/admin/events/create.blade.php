@@ -113,6 +113,7 @@
                                     class="mt-1 block w-full"
                                 />
                                 <p class="text-xs text-gray-500 mt-1">{{ __('events.application_slot_duration_help') }}</p>
+                                <p id="app_slot_warning" class="text-xs text-amber-600 mt-1 hidden">⚠ イベント時間がスロット時間で割り切れません。端数スロットは作成されません。</p>
                                 @error('application_slot_duration')
                                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                                 @enderror
@@ -130,6 +131,7 @@
                                     class="mt-1 block w-full"
                                 />
                                 <p class="text-xs text-gray-500 mt-1">{{ __('events.assignment_slot_duration_help') }}</p>
+                                <p id="assign_slot_warning" class="text-xs text-amber-600 mt-1 hidden">⚠ イベント時間がスロット時間で割り切れません。端数スロットは作成されません。</p>
                                 @error('slot_duration')
                                     <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                                 @enderror

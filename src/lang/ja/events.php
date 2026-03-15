@@ -21,7 +21,7 @@ return [
     'draft' => '下書き',
     'open' => '募集中',
     'closed' => '確定',
-    'completed' => '中止',
+    'cancelled' => '中止',
 
     // Tags
     'recurring' => '繰り返し',

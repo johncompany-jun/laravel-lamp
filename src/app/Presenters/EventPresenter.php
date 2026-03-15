@@ -52,7 +52,7 @@ class EventPresenter
                 'color' => '#991B1B',
                 'icon'  => 'cancel',
             ],
-            \App\Enums\EventStatus::COMPLETED => [
+            \App\Enums\EventStatus::CANCELLED => [
                 'bg'    => '#DBEAFE',
                 'color' => '#1E40AF',
                 'icon'  => 'done_all',

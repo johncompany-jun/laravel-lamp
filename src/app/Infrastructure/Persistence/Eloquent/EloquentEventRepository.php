@@ -97,4 +97,42 @@ class EloquentEventRepository implements EventRepositoryInterface
 
         return $query->orderBy('title')->get();
     }
+
+    /**
+     * ダッシュボード用：直近の募集中イベントを取得
+     */
+    public function getUpcomingOpen(int $limit): Collection
+    {
+        return Event::where('status', EventStatus::OPEN)
+            ->where('is_template', false)
+            ->where('event_date', '>=', today())
+            ->orderBy('event_date')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * 管理者向けイベント一覧を取得（フィルタリング・ページネーション付き）
+     */
+    public function getAdminEventsList(array $filters, int $perPage): LengthAwarePaginator
+    {
+        $query = Event::with(['creator', 'parentEvent']);
+
+        if (!empty($filters['location'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('location', 'like', '%' . $filters['location'] . '%')
+                  ->orWhereJsonContains('locations', $filters['location']);
+            });
+        }
+
+        if (!empty($filters['event_date'])) {
+            $query->whereDate('event_date', $filters['event_date']);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->latest('event_date')->paginate($perPage);
+    }
 }

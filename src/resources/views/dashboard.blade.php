@@ -113,7 +113,7 @@
                                                                 <div class="text-xs text-gray-600 mb-1">
                                                                     {{ date('H:i', strtotime($slot->start_time)) }}-{{ date('H:i', strtotime($slot->end_time)) }}
                                                                 </div>
-                                                                @if($app->availability === 'available')
+                                                                @if($app->isAvailable())
                                                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                                                         {{ __('dashboard.available') }}
                                                                     </span>

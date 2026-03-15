@@ -2,47 +2,50 @@
 
 namespace App\Services;
 
+use App\Domain\Event\ValueObjects\RecurrenceSchedule;
 use App\Models\Event;
 use Carbon\Carbon;
 
+/**
+ * 繰り返しイベント生成のインフラサービス
+ *
+ * 繰り返し日付の計算は RecurrenceSchedule ValueObject に委譲し、
+ * このクラスは DB への保存とスロット生成のみを担当する。
+ */
 class RecurringEventService
 {
     public function __construct(
-        private EventSlotGenerator $slotGenerator
+        private readonly EventSlotGenerator $slotGenerator,
     ) {}
 
     /**
-     * Create recurring events based on the parent event.
+     * 親イベントを元に繰り返しイベントを生成して保存する
      */
     public function createRecurringEvents(Event $parentEvent, string $endDate): void
     {
-        $currentDate = Carbon::parse($parentEvent->event_date)->addWeek();
-        $endDate = Carbon::parse($endDate);
+        $schedule = RecurrenceSchedule::weekly($endDate);
+        $dates    = $schedule->generateWeeklyDates(Carbon::parse($parentEvent->event_date));
 
-        while ($currentDate->lte($endDate)) {
-            $this->createRecurringInstance($parentEvent, $currentDate);
-            $currentDate->addWeek();
+        foreach ($dates as $date) {
+            $this->createRecurringInstance($parentEvent, $date);
         }
     }
 
     /**
-     * Create a single recurring instance.
+     * 繰り返しイベントの1件を生成して保存する
      */
     private function createRecurringInstance(Event $parentEvent, Carbon $date): Event
     {
-        $recurringEvent = $parentEvent->replicate();
-        $recurringEvent->event_date = $date->format('Y-m-d');
-        $recurringEvent->parent_event_id = $parentEvent->id;
-        $recurringEvent->is_recurring = false;
-        $recurringEvent->is_template = false;
-        $recurringEvent->recurrence_type = null;
-        $recurringEvent->recurrence_end_date = null;
+        $recurringEvent                       = $parentEvent->replicate();
+        $recurringEvent->event_date           = $date->format('Y-m-d');
+        $recurringEvent->parent_event_id      = $parentEvent->id;
+        $recurringEvent->is_recurring         = false;
+        $recurringEvent->is_template          = false;
+        $recurringEvent->recurrence_type      = null;
+        $recurringEvent->recurrence_end_date  = null;
         $recurringEvent->save();
 
-        // Generate application slots for recurring event
         $this->slotGenerator->generateApplicationSlots($recurringEvent);
-
-        // Generate time slots for recurring event
         $this->slotGenerator->generateTimeSlots($recurringEvent);
 
         return $recurringEvent;

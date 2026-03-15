@@ -2,38 +2,40 @@
 
 namespace App\Services;
 
+use App\Domain\Event\Services\SlotCalculationService;
+use App\Domain\Event\ValueObjects\EventPeriod;
 use App\Models\Event;
-use Carbon\Carbon;
 
+/**
+ * スロット生成のインフラサービス
+ *
+ * ビジネスロジック（計算）は SlotCalculationService に委譲し、
+ * このクラスは DB への書き込みのみを担当する。
+ */
 class EventSlotGenerator
 {
+    public function __construct(
+        private readonly SlotCalculationService $slotCalculation,
+    ) {}
+
     /**
-     * Generate application slots for an event based on application_slot_duration.
+     * 申込スロットを生成して DB に保存する
      */
     public function generateApplicationSlots(Event $event): void
     {
-        $startTime = Carbon::parse($event->start_time);
-        $endTime = Carbon::parse($event->end_time);
+        $period   = new EventPeriod($event->start_time, $event->end_time);
         $duration = $event->application_slot_duration->value;
 
-        $currentTime = $startTime->copy();
-        $slots = [];
-
-        while ($currentTime->lt($endTime)) {
-            $slotEnd = $currentTime->copy()->addMinutes($duration);
-
-            if ($slotEnd->lte($endTime)) {
-                $slots[] = [
-                    'event_id' => $event->id,
-                    'start_time' => $currentTime->format('H:i:s'),
-                    'end_time' => $slotEnd->format('H:i:s'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-
-            $currentTime->addMinutes($duration);
-        }
+        $slots = array_map(
+            fn($range) => [
+                'event_id'   => $event->id,
+                'start_time' => $range['start'],
+                'end_time'   => $range['end'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            $this->slotCalculation->calculateApplicationSlots($period, $duration),
+        );
 
         if (!empty($slots)) {
             $event->applicationSlots()->insert($slots);
@@ -41,42 +43,26 @@ class EventSlotGenerator
     }
 
     /**
-     * Generate time slots for an event based on slot duration.
+     * アサインメントスロットを生成して DB に保存する
      */
     public function generateTimeSlots(Event $event): void
     {
-        $startTime = Carbon::parse($event->start_time);
-        $endTime = Carbon::parse($event->end_time);
-        $duration = $event->slot_duration->value;
+        $period    = new EventPeriod($event->start_time, $event->end_time);
+        $duration  = $event->slot_duration->value;
         $locations = $event->locations ?? [];
 
-        $currentTime = $startTime->copy();
-        $slots = [];
-
-        while ($currentTime->lt($endTime)) {
-            $slotEnd = $currentTime->copy()->addMinutes($duration);
-
-            if ($slotEnd->lte($endTime)) {
-                $slotData = [
-                    'event_id' => $event->id,
-                    'start_time' => $currentTime->format('H:i:s'),
-                    'end_time' => $slotEnd->format('H:i:s'),
-                    'capacity' => 3, // 2 participants + 1 leader
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-
-                if (!empty($locations)) {
-                    foreach ($locations as $location) {
-                        $slots[] = array_merge($slotData, ['location' => $location]);
-                    }
-                } else {
-                    $slots[] = $slotData;
-                }
-            }
-
-            $currentTime->addMinutes($duration);
-        }
+        $slots = array_map(
+            fn($slot) => [
+                'event_id'   => $event->id,
+                'start_time' => $slot['start'],
+                'end_time'   => $slot['end'],
+                'location'   => $slot['location'],
+                'capacity'   => $slot['capacity'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            $this->slotCalculation->calculateAssignmentSlots($period, $duration, $locations),
+        );
 
         if (!empty($slots)) {
             $event->slots()->insert($slots);
@@ -84,57 +70,74 @@ class EventSlotGenerator
     }
 
     /**
-     * Check if application slots need regeneration.
+     * 申込スロットの再生成が必要か判定する
      */
     public function needsApplicationSlotRegeneration(Event $event, array $newData): bool
     {
-        return $event->start_time !== $newData['start_time']
-            || $event->end_time !== $newData['end_time']
-            || $event->application_slot_duration !== $newData['application_slot_duration'];
+        $period          = new EventPeriod($event->start_time, $event->end_time);
+        $currentDuration = $event->application_slot_duration->value;
+        $newDuration     = is_int($newData['application_slot_duration'])
+            ? $newData['application_slot_duration']
+            : $newData['application_slot_duration']->value;
+
+        return $this->slotCalculation->needsApplicationSlotRegeneration(
+            $period,
+            $newData['start_time'],
+            $newData['end_time'],
+            $currentDuration,
+            $newDuration,
+        );
     }
 
     /**
-     * Check if time slots need regeneration.
+     * アサインメントスロットの再生成が必要か判定する
      */
     public function needsTimeSlotRegeneration(Event $event, array $newData): bool
     {
-        $locationsChanged = json_encode($event->locations ?? []) !== json_encode($newData['locations'] ?? []);
+        $period          = new EventPeriod($event->start_time, $event->end_time);
+        $currentDuration = $event->slot_duration->value;
+        $newDuration     = is_int($newData['slot_duration'])
+            ? $newData['slot_duration']
+            : $newData['slot_duration']->value;
 
-        return $event->start_time !== $newData['start_time']
-            || $event->end_time !== $newData['end_time']
-            || $event->slot_duration !== $newData['slot_duration']
-            || $locationsChanged;
+        return $this->slotCalculation->needsAssignmentSlotRegeneration(
+            $period,
+            $newData['start_time'],
+            $newData['end_time'],
+            $currentDuration,
+            $newDuration,
+            $event->locations ?? [],
+            $newData['locations'] ?? [],
+        );
     }
 
     /**
-     * Regenerate application slots if safe to do so.
+     * 申込がなければ申込スロットを再生成する
      */
     public function regenerateApplicationSlotsIfSafe(Event $event): bool
     {
-        $hasApplications = $event->applicationSlots()->whereHas('applications')->exists();
-
-        if (!$hasApplications) {
-            $event->applicationSlots()->delete();
-            $this->generateApplicationSlots($event);
-            return true;
+        if ($event->applicationSlots()->whereHas('applications')->exists()) {
+            return false;
         }
 
-        return false;
+        $event->applicationSlots()->delete();
+        $this->generateApplicationSlots($event);
+
+        return true;
     }
 
     /**
-     * Regenerate time slots if safe to do so.
+     * アサインメントがなければアサインメントスロットを再生成する
      */
     public function regenerateTimeSlotsIfSafe(Event $event): bool
     {
-        $hasAssignments = $event->slots()->whereHas('assignments')->exists();
-
-        if (!$hasAssignments) {
-            $event->slots()->delete();
-            $this->generateTimeSlots($event);
-            return true;
+        if ($event->slots()->whereHas('assignments')->exists()) {
+            return false;
         }
 
-        return false;
+        $event->slots()->delete();
+        $this->generateTimeSlots($event);
+
+        return true;
     }
 }

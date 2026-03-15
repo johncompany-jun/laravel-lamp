@@ -54,8 +54,9 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700">{{ __('events.status') }}</label>
                             <p class="mt-1">
+                                @php $presenter = new \App\Presenters\EventPresenter($event); @endphp
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                      style="background-color: {{ $event->status->badgeConfig()['bg'] }}; color: {{ $event->status->badgeConfig()['color'] }};">
+                                      style="background-color: {{ $presenter->statusBadgeConfig()['bg'] }}; color: {{ $presenter->statusBadgeConfig()['color'] }};">
                                     {{ $event->status->translatedLabel() }}
                                 </span>
                             </p>
@@ -280,7 +281,7 @@
                                                 <td class="px-3 py-4 whitespace-nowrap text-center text-sm">
                                                     @if($appsBySlot->has($slot->id))
                                                         @php $app = $appsBySlot->get($slot->id); @endphp
-                                                        @if($app->availability === 'available')
+                                                        @if($app->isAvailable())
                                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                                                 {{ __('events.available_status') }}
                                                             </span>

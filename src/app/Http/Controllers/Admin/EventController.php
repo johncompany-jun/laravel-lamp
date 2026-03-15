@@ -106,19 +106,55 @@ class EventController extends Controller
      */
     public function createAssignments(Event $event)
     {
-        $event = $this->queryService->getEventWithSlotsAndApplications($event);
-        $applications = $this->queryService->getApplicationsGroupedByUser($event);
-        $existingAssignments = $this->queryService->getExistingAssignments($event);
+        $event                      = $this->queryService->getEventWithSlotsAndApplications($event);
+        $applications               = $this->queryService->getApplicationsGroupedByUser($event);
+        $existingAssignments        = $this->queryService->getExistingAssignments($event);
         $existingSpecialAssignments = $this->queryService->getExistingSpecialAssignments($event);
 
-        // Prepare assignment data using service
-        $assignmentData = $this->queryService->prepareAssignmentData($event);
-        $availableUsers = $this->queryService->prepareAvailableUsers($applications);
+        $assignmentData = $this->buildAssignmentData($event);
+        $availableUsers = $this->buildAvailableUsers($applications);
 
         return view('admin.events.assignments.create', array_merge(
             compact('event', 'applications', 'existingAssignments', 'existingSpecialAssignments', 'availableUsers'),
             $assignmentData
         ));
+    }
+
+    /**
+     * アサインメント作成ページ用のスロットデータを構築する
+     */
+    private function buildAssignmentData(Event $event): array
+    {
+        $timeSlots = $event->slots->unique(fn($slot) => $slot->start_time . '-' . $slot->end_time)
+            ->sortBy('start_time')
+            ->values();
+
+        $locations  = $event->locations ?? [];
+        $slotMatrix = [];
+
+        foreach ($event->slots as $slot) {
+            $timeKey     = $slot->start_time . '-' . $slot->end_time;
+            $locationKey = $slot->location ?? 'default';
+            $slotMatrix[$timeKey][$locationKey] = $slot;
+        }
+
+        return compact('timeSlots', 'locations', 'slotMatrix');
+    }
+
+    /**
+     * 申込データから表示用ユーザーリストを構築する
+     */
+    private function buildAvailableUsers(\Illuminate\Support\Collection $applications): \Illuminate\Support\Collection
+    {
+        return $applications->map(function ($userApps, $userId) {
+            return [
+                'id'                  => $userId,
+                'name'                => $userApps->first()->user->name,
+                'can_help_setup'      => $userApps->contains(fn($app) => $app->can_help_setup),
+                'can_help_cleanup'    => $userApps->contains(fn($app) => $app->can_help_cleanup),
+                'can_transport_by_car' => $userApps->contains(fn($app) => $app->can_transport_by_car),
+            ];
+        })->values();
     }
 
     /**

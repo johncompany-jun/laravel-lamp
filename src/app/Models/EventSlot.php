@@ -37,9 +37,16 @@ class EventSlot extends Model
 
     /**
      * Check if slot is full.
+     *
+     * assignments がイーガーロード済みの場合はコレクションを使い、
+     * 未ロードの場合のみ DB クエリを実行する。
      */
     public function isFull(): bool
     {
-        return $this->assignments()->count() >= $this->capacity;
+        $count = $this->relationLoaded('assignments')
+            ? $this->assignments->count()
+            : $this->assignments()->count();
+
+        return $count >= $this->capacity;
     }
 }

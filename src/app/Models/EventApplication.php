@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SlotAvailability;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,13 @@ class EventApplication extends Model
         'can_help_cleanup',
         'can_transport_by_car',
         'comment',
+    ];
+
+    protected $casts = [
+        'availability'        => SlotAvailability::class,
+        'can_help_setup'      => 'boolean',
+        'can_help_cleanup'    => 'boolean',
+        'can_transport_by_car' => 'boolean',
     ];
 
     /**
@@ -50,6 +58,6 @@ class EventApplication extends Model
      */
     public function isAvailable(): bool
     {
-        return $this->availability === 'available';
+        return $this->availability->isAvailable();
     }
 }

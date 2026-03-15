@@ -2,39 +2,39 @@
 
 namespace App\Services;
 
+use App\Domain\Event\Repositories\EventAssignmentRepositoryInterface;
 use App\Models\Event;
-use App\Models\EventAssignment;
 
+/**
+ * イベントアサインメントのインフラサービス
+ *
+ * DB 操作はすべて EventAssignmentRepository 経由で行う。
+ */
 class EventAssignmentService
 {
-    /**
-     * Delete all assignments for an event.
-     */
+    public function __construct(
+        private readonly EventAssignmentRepositoryInterface $assignmentRepository,
+    ) {}
+
     public function deleteEventAssignments(Event $event): void
     {
-        EventAssignment::where('event_id', $event->id)->delete();
+        $this->assignmentRepository->deleteByEvent($event);
     }
 
-    /**
-     * Create assignments for an event.
-     */
     public function createAssignments(Event $event, array $assignments): void
     {
         foreach ($assignments as $assignment) {
-            EventAssignment::create([
-                'event_id' => $event->id,
+            $this->assignmentRepository->create([
+                'event_id'     => $event->id,
                 'event_slot_id' => $assignment['slot_id'] ?? null,
-                'user_id' => $assignment['user_id'],
-                'role' => $assignment['role'],
+                'user_id'      => $assignment['user_id'],
+                'role'         => $assignment['role'],
                 'special_role' => $assignment['special_role'] ?? null,
-                'assigned_by' => auth()->id(),
+                'assigned_by'  => auth()->id(),
             ]);
         }
     }
 
-    /**
-     * Replace all assignments for an event.
-     */
     public function replaceAssignments(Event $event, array $assignments): void
     {
         $this->deleteEventAssignments($event);

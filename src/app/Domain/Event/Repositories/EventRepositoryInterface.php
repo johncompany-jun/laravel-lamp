@@ -53,4 +53,16 @@ interface EventRepositoryInterface
      * テンプレートイベントを取得
      */
     public function getTemplateEvents(?int $excludeId = null): Collection;
+
+    /**
+     * 管理者向けイベント一覧を取得（フィルタリング・ページネーション付き）
+     *
+     * @param array{location?: string, event_date?: string, status?: string} $filters
+     */
+    public function getAdminEventsList(array $filters, int $perPage): LengthAwarePaginator;
+
+    /**
+     * ダッシュボード用：直近の募集中イベントを取得（テンプレート除外）
+     */
+    public function getUpcomingOpen(int $limit): Collection;
 }

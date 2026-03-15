@@ -30,12 +30,43 @@ class EventPresenter
     }
 
     /**
+     * Get status badge config (bg color, text color, icon).
+     *
+     * @return array{bg: string, color: string, icon: string}
+     */
+    public function statusBadgeConfig(): array
+    {
+        return match($this->event->status) {
+            \App\Enums\EventStatus::DRAFT => [
+                'bg'    => '#F3F4F6',
+                'color' => '#374151',
+                'icon'  => 'edit',
+            ],
+            \App\Enums\EventStatus::OPEN => [
+                'bg'    => '#D1FAE5',
+                'color' => '#065F46',
+                'icon'  => 'check_circle',
+            ],
+            \App\Enums\EventStatus::CLOSED => [
+                'bg'    => '#FEE2E2',
+                'color' => '#991B1B',
+                'icon'  => 'cancel',
+            ],
+            \App\Enums\EventStatus::COMPLETED => [
+                'bg'    => '#DBEAFE',
+                'color' => '#1E40AF',
+                'icon'  => 'done_all',
+            ],
+        };
+    }
+
+    /**
      * Get status badge HTML.
      */
     public function statusBadge(): string
     {
-        $config = $this->event->status->badgeConfig();
-        $label = $this->event->status->translatedLabel();
+        $config = $this->statusBadgeConfig();
+        $label  = $this->event->status->translatedLabel();
 
         return sprintf(
             '<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background-color: %s; color: %s; border-radius: 16px; font-size: 12px; font-weight: 500;">

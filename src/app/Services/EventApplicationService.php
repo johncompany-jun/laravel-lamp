@@ -2,156 +2,138 @@
 
 namespace App\Services;
 
+use App\Domain\Event\Repositories\EventApplicationRepositoryInterface;
+use App\Domain\Event\Services\ApplicationPolicyService;
+use App\Domain\Event\ValueObjects\VolunteerCapabilities;
 use App\Models\Event;
 use App\Models\EventApplication;
 use App\Models\User;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
+/**
+ * イベント申込のインフラサービス
+ *
+ * ビジネスルールは ApplicationPolicyService に委譲し、
+ * DB 操作はすべて EventApplicationRepository 経由で行う。
+ */
 class EventApplicationService
 {
+    public function __construct(
+        private readonly ApplicationPolicyService            $policy,
+        private readonly EventApplicationRepositoryInterface $applicationRepository,
+    ) {}
+
     /**
-     * Validate slot data from request.
+     * リクエストのスロットデータを検証・フィルタリングして返す
+     *
+     * @throws \InvalidArgumentException
      */
     public function validateSlots(array $slots): array
     {
-        $validSlots = [];
-
-        foreach ($slots as $slotId => $slotData) {
-            if (isset($slotData['slot_id']) && isset($slotData['availability'])) {
-                // Only allow 'available' or 'unavailable' - reject null or any other value
-                if (in_array($slotData['availability'], ['available', 'unavailable'], true)) {
-                    $validSlots[] = [
-                        'slot_id' => $slotData['slot_id'],
-                        'availability' => $slotData['availability'],
-                    ];
-                }
-            }
-        }
-
-        return $validSlots;
+        return $this->policy->validateAndFilterSlots($slots);
     }
 
     /**
-     * Submit application for an event.
+     * イベントへの申込を登録する（既存申込は上書き）
      */
     public function submitApplication(
-        User $user,
-        Event $event,
-        array $validSlots,
-        bool $canHelpSetup = false,
-        bool $canHelpCleanup = false,
-        bool $canTransportByCar = false,
-        ?string $comment = null
+        User    $user,
+        Event   $event,
+        array   $validSlots,
+        bool    $canHelpSetup      = false,
+        bool    $canHelpCleanup    = false,
+        bool    $canTransportByCar = false,
+        ?string $comment           = null,
     ): void {
-        // Delete existing applications for this event
-        $this->deleteUserApplications($user, $event);
+        $this->applicationRepository->deleteByUserAndEvent($user, $event);
 
-        // Create new applications for each selected slot
         foreach ($validSlots as $slotData) {
-            EventApplication::create([
-                'event_id' => $event->id,
+            $application = new EventApplication([
+                'event_id'                  => $event->id,
                 'event_application_slot_id' => $slotData['slot_id'],
-                'user_id' => $user->id,
-                'availability' => $slotData['availability'],
-                'can_help_setup' => $canHelpSetup,
-                'can_help_cleanup' => $canHelpCleanup,
-                'can_transport_by_car' => $canTransportByCar,
-                'comment' => $comment,
+                'user_id'                   => $user->id,
+                'availability'              => $slotData['availability'],
+                'can_help_setup'            => $canHelpSetup,
+                'can_help_cleanup'          => $canHelpCleanup,
+                'can_transport_by_car'      => $canTransportByCar,
+                'comment'                   => $comment,
             ]);
+            $this->applicationRepository->save($application);
         }
     }
 
     /**
-     * Delete all applications for a user and event.
+     * ユーザーのイベント申込をすべて削除する
      */
     public function deleteUserApplications(User $user, Event $event): void
     {
-        EventApplication::where('event_id', $event->id)
-            ->where('user_id', $user->id)
-            ->delete();
+        $this->applicationRepository->deleteByUserAndEvent($user, $event);
     }
 
     /**
-     * Get user's existing applications for an event.
+     * ユーザーのイベント申込を取得する（スロットIDをキーにした Collection）
      */
     public function getUserApplications(User $user, Event $event): Collection
     {
-        return EventApplication::where('event_id', $event->id)
-            ->where('user_id', $user->id)
-            ->with('applicationSlot')
-            ->get()
+        return $this->applicationRepository
+            ->getByUserAndEvent($user, $event)
             ->keyBy('event_application_slot_id');
     }
 
     /**
-     * Get all user's applications for an event, sorted by time.
+     * ユーザーのイベント申込を時刻順で取得する
      */
     public function getUserApplicationsSortedByTime(User $user, Event $event): Collection
     {
-        return EventApplication::where('event_id', $event->id)
-            ->where('user_id', $user->id)
-            ->with('applicationSlot')
-            ->get()
-            ->sortBy(function ($app) {
-                return $app->applicationSlot->start_time;
-            })
-            ->values();
+        return $this->applicationRepository->getSortedByTimeForUserAndEvent($user, $event);
     }
 
     /**
-     * Cancel a specific application and update related applications.
+     * 申込をキャンセルし、残りの申込のCapabilitiesを更新する
+     *
+     * @throws \DomainException 申込が本人のものでない場合
      */
     public function cancelApplication(EventApplication $application, User $user): bool
     {
-        // Ensure the application belongs to the authenticated user
-        if ($application->user_id !== $user->id) {
-            return false;
-        }
+        $this->policy->assertOwnedBy($application->user_id, $user->id);
 
-        // Get all applications for this event by this user, ordered by time slot
-        $allUserApplications = $this->getUserApplicationsSortedByTime($user, $application->event);
+        $allApplications = $this->getUserApplicationsSortedByTime($user, $application->event);
+        $isFirstSlot     = $allApplications->first()->id === $application->id;
+        $isLastSlot      = $allApplications->last()->id === $application->id;
 
-        // Check if this is the first or last slot
-        $isFirstSlot = $allUserApplications->first()->id === $application->id;
-        $isLastSlot = $allUserApplications->last()->id === $application->id;
-
-        // Delete the application
         $application->delete();
 
-        // Update remaining applications if needed
-        if ($allUserApplications->count() > 1) {
-            $this->updateApplicationsAfterCancellation(
-                $application,
-                $user,
-                $isFirstSlot,
-                $isLastSlot
-            );
+        if ($allApplications->count() > 1) {
+            $this->applyCapabilitiesAfterCancellation($application, $user, $isFirstSlot, $isLastSlot);
         }
 
         return true;
     }
 
-    /**
-     * Update remaining applications after cancellation.
-     */
-    private function updateApplicationsAfterCancellation(
-        EventApplication $cancelledApplication,
-        User $user,
-        bool $wasFirstSlot,
-        bool $wasLastSlot
+    private function applyCapabilitiesAfterCancellation(
+        EventApplication $cancelled,
+        User             $user,
+        bool             $wasFirst,
+        bool             $wasLast,
     ): void {
-        // If we cancelled the first slot and it had setup help, remove setup from all remaining
-        if ($wasFirstSlot && $cancelledApplication->can_help_setup) {
-            EventApplication::where('event_id', $cancelledApplication->event_id)
-                ->where('user_id', $user->id)
-                ->update(['can_help_setup' => false]);
+        $original = VolunteerCapabilities::fromArray([
+            'can_help_setup'       => $cancelled->can_help_setup,
+            'can_help_cleanup'     => $cancelled->can_help_cleanup,
+            'can_transport_by_car' => $cancelled->can_transport_by_car,
+        ]);
+
+        $updated = $this->policy->capabilitiesAfterCancellation($original, $wasFirst, $wasLast);
+
+        if ($updated->canHelpSetup() !== $original->canHelpSetup()) {
+            $this->applicationRepository->updateCapabilitiesByUserAndEvent(
+                $cancelled->event_id, $user->id, ['can_help_setup' => false]
+            );
         }
 
-        // If we cancelled the last slot and it had cleanup help, remove cleanup from all remaining
-        if ($wasLastSlot && $cancelledApplication->can_help_cleanup) {
-            EventApplication::where('event_id', $cancelledApplication->event_id)
-                ->where('user_id', $user->id)
-                ->update(['can_help_cleanup' => false]);
+        if ($updated->canHelpCleanup() !== $original->canHelpCleanup()) {
+            $this->applicationRepository->updateCapabilitiesByUserAndEvent(
+                $cancelled->event_id, $user->id, ['can_help_cleanup' => false]
+            );
         }
     }
 }

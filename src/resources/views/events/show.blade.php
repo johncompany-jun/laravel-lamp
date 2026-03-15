@@ -99,7 +99,7 @@
                                     @foreach($event->applicationSlots as $slot)
                                         @php
                                             $existingApp = $existingApplications->get($slot->id);
-                                            $availability = $existingApp ? $existingApp->availability : 'available';
+                                            $isAvailable = !$existingApp || $existingApp->isAvailable();
                                         @endphp
                                         <div class="border rounded-lg p-4">
                                             <div class="mb-2">
@@ -116,7 +116,7 @@
                                                     <input type="radio"
                                                         name="slots[{{ $slot->id }}][availability]"
                                                         value="available"
-                                                        {{ $availability === 'available' ? 'checked' : '' }}
+                                                        {{ $isAvailable ? 'checked' : '' }}
                                                         class="rounded-full border-gray-300 text-green-600 shadow-sm focus:ring-green-500"
                                                         required>
                                                     <span class="ml-2 text-sm text-gray-700">{{ __('events.available_status') }}</span>
@@ -125,7 +125,7 @@
                                                     <input type="radio"
                                                         name="slots[{{ $slot->id }}][availability]"
                                                         value="unavailable"
-                                                        {{ $availability === 'unavailable' ? 'checked' : '' }}
+                                                        {{ !$isAvailable ? 'checked' : '' }}
                                                         class="rounded-full border-gray-300 text-red-600 shadow-sm focus:ring-red-500"
                                                         required>
                                                     <span class="ml-2 text-sm text-gray-700">{{ __('events.unavailable_status') }}</span>

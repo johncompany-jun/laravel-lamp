@@ -146,7 +146,12 @@
                                                         <div class="mt-3 pt-3 border-t">
                                                             <p class="text-xs font-medium text-gray-700 mb-1">{{ __('events.assigned') }}:</p>
                                                             @foreach($slot->assignments as $assignment)
-                                                                <p class="text-sm text-gray-600">{{ $assignment->user->name }}</p>
+                                                                <p class="text-sm text-gray-600 flex items-center gap-1">
+                                                                    {{ $assignment->user->name }}
+                                                                    @if($assignment->role === 'leader')
+                                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">{{ __('events.leader') }}</span>
+                                                                    @endif
+                                                                </p>
                                                             @endforeach
                                                         </div>
                                                     @endif
@@ -185,7 +190,12 @@
                                             <div class="mt-3 pt-3 border-t">
                                                 <p class="text-xs font-medium text-gray-700 mb-1">{{ __('events.assigned') }}:</p>
                                                 @foreach($slot->assignments as $assignment)
-                                                    <p class="text-sm text-gray-600">{{ $assignment->user->name }}</p>
+                                                    <p class="text-sm text-gray-600 flex items-center gap-1">
+                                                        {{ $assignment->user->name }}
+                                                        @if($assignment->role === 'leader')
+                                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">{{ __('events.leader') }}</span>
+                                                        @endif
+                                                    </p>
                                                 @endforeach
                                             </div>
                                         @endif
